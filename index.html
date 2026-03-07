@@ -395,6 +395,39 @@
   <script>
     lucide.createIcons();
 
+    // --- Default Seed Data (Guards against empty cloud pulls) ---
+    const DEFAULT_TASKS = [{ id: 1, time: '05:00 AM', text: 'Wake. Hydrate. Attack.' }];
+    const DEFAULT_TODOS = [{ id: 1, text: 'Review mission critical goals', completed: false }];
+    const DEFAULT_HABITS = [
+      { id: 1, name: 'NO PORN / MASTURBATION', daysClean: 12 }, 
+      { id: 2, name: 'FIDELITY', daysClean: 45 }, 
+      { id: 3, name: 'NO JUNK FOOD', daysClean: 5 }
+    ];
+
+    // --- State Storage Utilities (Fail-Safe & Scrubbed) ---
+    function safeGetArray(key, fallback) {
+        try {
+            const val = localStorage.getItem(key);
+            if (val) {
+                const parsed = JSON.parse(val);
+                // Aggressively scrub arrays to ensure no `null` objects exist from corrupted syncs
+                if (Array.isArray(parsed)) {
+                    const scrubbed = parsed.filter(item => item !== null && typeof item === 'object');
+                    if (scrubbed.length > 0) return scrubbed;
+                }
+            }
+        } catch(e) { console.warn("Storage parse error:", e); }
+        return fallback;
+    }
+
+    function safeGetNum(key, fallback) {
+        try {
+            const val = localStorage.getItem(key);
+            if (val !== null && !isNaN(parseInt(val))) return parseInt(val);
+        } catch(e) {}
+        return fallback;
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
@@ -404,15 +437,17 @@
         btn.classList.add('text-slate-500');
       });
       const activeBtn = document.getElementById('tab-btn-' + tabId);
-      activeBtn.classList.add('bg-slate-900', 'text-white', 'shadow-md', 'scale-105');
-      activeBtn.classList.remove('text-slate-500');
+      if(activeBtn) {
+          activeBtn.classList.add('bg-slate-900', 'text-white', 'shadow-md', 'scale-105');
+          activeBtn.classList.remove('text-slate-500');
+      }
     }
 
     // --- CLOUD SYNC ENGINE (Google Apps Script) ---
     let syncTimeout = null;
 
     function triggerCloudSync() {
-        const url = document.getElementById('setup-apps-script')?.value;
+        const url = document.getElementById('setup-apps-script') ? document.getElementById('setup-apps-script').value : '';
         if (!url) return;
         
         const syncStatus = document.getElementById('sync-status');
@@ -451,7 +486,7 @@
     }
 
     async function pullFromCloud() {
-        const url = document.getElementById('setup-apps-script')?.value;
+        const url = document.getElementById('setup-apps-script') ? document.getElementById('setup-apps-script').value : '';
         if (!url) return;
 
         const syncStatus = document.getElementById('sync-status');
@@ -465,15 +500,16 @@
             const json = await res.json();
             
             if (json && json.data) {
-                if(json.data.studyLogs) { studyLogs = json.data.studyLogs; localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs)); }
-                if(json.data.tasks) { tasks = json.data.tasks; localStorage.setItem('dh_tasks', JSON.stringify(tasks)); }
-                if(json.data.todos) { todos = json.data.todos; localStorage.setItem('dh_todos', JSON.stringify(todos)); }
+                // Safely assign arrays, stripping any possible `null` values injected by bad syncs
+                if(json.data.studyLogs !== undefined) { studyLogs = (json.data.studyLogs || []).filter(i=>i); localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs)); }
+                if(json.data.tasks !== undefined) { tasks = (json.data.tasks || []).filter(i=>i); if(!tasks.length) tasks = DEFAULT_TASKS; localStorage.setItem('dh_tasks', JSON.stringify(tasks)); }
+                if(json.data.todos !== undefined) { todos = (json.data.todos || []).filter(i=>i); if(!todos.length) todos = DEFAULT_TODOS; localStorage.setItem('dh_todos', JSON.stringify(todos)); }
                 if(json.data.gymStreak !== undefined) { gymStreak = json.data.gymStreak; localStorage.setItem('dh_gymStreak', gymStreak); }
-                if(json.data.weightLogs) { weightLogs = json.data.weightLogs; localStorage.setItem('dh_weightLogs', JSON.stringify(weightLogs)); }
-                if(json.data.habits) { habits = json.data.habits; localStorage.setItem('dh_habits', JSON.stringify(habits)); }
+                if(json.data.weightLogs !== undefined) { weightLogs = (json.data.weightLogs || []).filter(i=>i); localStorage.setItem('dh_weightLogs', JSON.stringify(weightLogs)); }
+                if(json.data.habits !== undefined) { habits = (json.data.habits || []).filter(i=>i); if(!habits.length) habits = DEFAULT_HABITS; localStorage.setItem('dh_habits', JSON.stringify(habits)); }
                 if(json.data.screenUsed !== undefined) { screenUsed = json.data.screenUsed; localStorage.setItem('dh_screenUsed', screenUsed); }
-                if(json.data.transactions) { transactions = json.data.transactions; localStorage.setItem('dh_transactions', JSON.stringify(transactions)); }
-                if(json.data.monthlyBudgetVal) { monthlyBudgetVal = json.data.monthlyBudgetVal; localStorage.setItem('dh_monthlyBudget', monthlyBudgetVal); }
+                if(json.data.transactions !== undefined) { transactions = (json.data.transactions || []).filter(i=>i); localStorage.setItem('dh_transactions', JSON.stringify(transactions)); }
+                if(json.data.monthlyBudgetVal !== undefined) { monthlyBudgetVal = json.data.monthlyBudgetVal; localStorage.setItem('dh_monthlyBudget', monthlyBudgetVal); }
                 
                 renderAll();
                 
@@ -491,22 +527,23 @@
         }
     }
 
-
     // --- Tab 1: Timetable & Focus ---
-    let tasks = JSON.parse(localStorage.getItem('dh_tasks')) || [{ id: 1, time: '05:00 AM', text: 'Wake. Hydrate. Attack.' }];
-    let todos = JSON.parse(localStorage.getItem('dh_todos')) || [{ id: 1, text: 'Review mission critical goals', completed: false }];
+    let tasks = safeGetArray('dh_tasks', DEFAULT_TASKS);
+    let todos = safeGetArray('dh_todos', DEFAULT_TODOS);
 
     function renderTasks() {
       const list = document.getElementById('task-list');
-      if (tasks.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-4 bg-slate-100 rounded-xl text-center">No objectives set.</p>';
-      else list.innerHTML = tasks.map(t => `
+      if (!list) return;
+      const safeTasks = tasks.filter(t => t && t.id); // Protect against mapping crashes
+      if (safeTasks.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-4 bg-slate-100 rounded-xl text-center">No objectives set.</p>';
+      else list.innerHTML = safeTasks.map(t => `
         <li class="flex flex-col sm:flex-row sm:items-center bg-white p-4 rounded-xl border-2 border-slate-200 gap-2 sm:gap-4">
-          <span class="font-black text-sm uppercase tracking-wider text-slate-900 sm:w-28">${t.time}</span>
-          <span class="flex-1 font-bold text-slate-700 text-sm">${t.text}</span>
+          <span class="font-black text-sm uppercase tracking-wider text-slate-900 sm:w-28">${t.time || '-'}</span>
+          <span class="flex-1 font-bold text-slate-700 text-sm">${t.text || '-'}</span>
           <button onclick="removeTask(${t.id})" class="text-slate-400 hover:text-red-600 self-end sm:self-auto bg-slate-100 p-2 rounded-lg hover:bg-red-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
         </li>
       `).join('');
-      lucide.createIcons();
+      if(window.lucide) lucide.createIcons();
     }
 
     function addTask(e) {
@@ -520,22 +557,24 @@
     }
 
     function removeTask(id) { 
-      tasks = tasks.filter(t => t.id !== id); 
+      tasks = tasks.filter(t => t && t.id !== id); 
       localStorage.setItem('dh_tasks', JSON.stringify(tasks));
       renderTasks(); triggerCloudSync();
     }
 
     function renderTodos() {
       const list = document.getElementById('todo-list');
-      if (todos.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-4 bg-slate-100 rounded-xl text-center">No action items.</p>';
-      else list.innerHTML = todos.map(t => `
+      if (!list) return;
+      const safeTodos = todos.filter(t => t && t.id);
+      if (safeTodos.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-4 bg-slate-100 rounded-xl text-center">No action items.</p>';
+      else list.innerHTML = safeTodos.map(t => `
         <li class="flex items-center gap-4 bg-white p-4 rounded-xl border-2 border-slate-200">
           <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTodo(${t.id})" class="w-6 h-6 accent-slate-900 cursor-pointer rounded-md">
-          <span class="flex-1 font-bold text-sm ${t.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${t.text}</span>
+          <span class="flex-1 font-bold text-sm ${t.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${t.text || '-'}</span>
           <button onclick="removeTodo(${t.id})" class="text-slate-400 hover:text-red-600 bg-slate-100 p-2 rounded-lg hover:bg-red-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
         </li>
       `).join('');
-      lucide.createIcons();
+      if(window.lucide) lucide.createIcons();
     }
 
     function addTodo(e) {
@@ -547,14 +586,14 @@
     }
 
     function toggleTodo(id) {
-      const todo = todos.find(t => t.id === id);
+      const todo = todos.find(t => t && t.id === id);
       if (todo) todo.completed = !todo.completed;
       localStorage.setItem('dh_todos', JSON.stringify(todos));
       renderTodos(); triggerCloudSync();
     }
 
     function removeTodo(id) { 
-      todos = todos.filter(t => t.id !== id); 
+      todos = todos.filter(t => t && t.id !== id); 
       localStorage.setItem('dh_todos', JSON.stringify(todos));
       renderTodos(); triggerCloudSync();
     }
@@ -563,17 +602,23 @@
     let timeLeft = 25 * 60; let isRunning = false; let timerInterval = null;
     function formatTime(sec) { return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`; }
     function updateTimerUI() {
-      document.getElementById('timer-display').innerText = formatTime(timeLeft);
+      const timerDisplay = document.getElementById('timer-display');
+      if (timerDisplay) {
+        timerDisplay.innerText = formatTime(timeLeft);
+      }
       const btn = document.getElementById('timer-toggle-btn');
       const text = document.getElementById('timer-text');
-      if (isRunning) {
-        btn.classList.replace('bg-red-600', 'bg-slate-700'); btn.classList.replace('hover:bg-red-700', 'hover:bg-slate-600'); btn.classList.remove('shadow-red-600/30');
-        text.innerText = 'Halt'; document.getElementById('timer-icon').setAttribute('data-lucide', 'pause');
-      } else {
-        btn.classList.replace('bg-slate-700', 'bg-red-600'); btn.classList.replace('hover:bg-slate-600', 'hover:bg-red-700'); btn.classList.add('shadow-red-600/30');
-        text.innerText = 'Engage'; document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
+      const timerIcon = document.getElementById('timer-icon');
+      if (btn && text && timerIcon) {
+        if (isRunning) {
+          btn.classList.replace('bg-red-600', 'bg-slate-700'); btn.classList.replace('hover:bg-red-700', 'hover:bg-slate-600'); btn.classList.remove('shadow-red-600/30');
+          text.innerText = 'Halt'; timerIcon.setAttribute('data-lucide', 'pause');
+        } else {
+          btn.classList.replace('bg-slate-700', 'bg-red-600'); btn.classList.replace('hover:bg-slate-600', 'hover:bg-red-700'); btn.classList.add('shadow-red-600/30');
+          text.innerText = 'Engage'; timerIcon.setAttribute('data-lucide', 'play');
+        }
       }
-      lucide.createIcons();
+      if(window.lucide) lucide.createIcons();
     }
     function toggleTimer() {
       isRunning = !isRunning;
@@ -585,25 +630,32 @@
 
 
     // --- Tab 2/3: Gym, Calories, Photobook ---
-    let gymStreak = localStorage.getItem('dh_gymStreak') !== null ? parseInt(localStorage.getItem('dh_gymStreak')) : 3;
-    let weightLogs = JSON.parse(localStorage.getItem('dh_weightLogs')) || [];
+    let gymStreak = safeGetNum('dh_gymStreak', 3);
+    let weightLogs = safeGetArray('dh_weightLogs', []);
     let photoPreviewBase64 = null; let currentCyclePhase = 'maintenance'; let currentTdee = null;
     let driveToken = localStorage.getItem('driveToken') || null; let tokenExpiry = localStorage.getItem('driveTokenExpiry') || null;
 
     function updateGymStreak(val) {
       gymStreak = val === 0 ? 0 : gymStreak + val;
       localStorage.setItem('dh_gymStreak', gymStreak);
-      document.getElementById('gym-streak-val').innerText = gymStreak;
+      const streakValEl = document.getElementById('gym-streak-val');
+      if (streakValEl) streakValEl.innerText = gymStreak;
       triggerCloudSync();
     }
 
     function logWeight(e) {
       e.preventDefault();
-      const weight = document.getElementById('weight-log-input').value;
-      const waist = document.getElementById('log-waist').value;
-      const neck = document.getElementById('log-neck').value;
-      const chest = document.getElementById('log-chest').value;
-      const bicep = document.getElementById('log-bicep').value;
+      const weightInput = document.getElementById('weight-log-input');
+      const waistInput = document.getElementById('log-waist');
+      const neckInput = document.getElementById('log-neck');
+      const chestInput = document.getElementById('log-chest');
+      const bicepInput = document.getElementById('log-bicep');
+
+      const weight = weightInput ? weightInput.value : '';
+      const waist = waistInput ? waistInput.value : '';
+      const neck = neckInput ? neckInput.value : '';
+      const chest = chestInput ? chestInput.value : '';
+      const bicep = bicepInput ? bicepInput.value : '';
 
       if(!weight) return;
       
@@ -615,32 +667,36 @@
       });
       localStorage.setItem('dh_weightLogs', JSON.stringify(weightLogs));
       
-      document.getElementById('weight-log-input').value = '';
-      document.getElementById('log-waist').value = '';
-      document.getElementById('log-neck').value = '';
-      document.getElementById('log-chest').value = '';
-      document.getElementById('log-bicep').value = '';
-      document.getElementById('photo-upload').value = '';
-      document.getElementById('photo-preview-img').classList.add('hidden');
+      if (weightInput) weightInput.value = '';
+      if (waistInput) waistInput.value = '';
+      if (neckInput) neckInput.value = '';
+      if (chestInput) chestInput.value = '';
+      if (bicepInput) bicepInput.value = '';
+      const photoUpload = document.getElementById('photo-upload');
+      if (photoUpload) photoUpload.value = '';
+      const photoPreview = document.getElementById('photo-preview-img');
+      if (photoPreview) photoPreview.classList.add('hidden');
       photoPreviewBase64 = null;
       renderPhotobook(); triggerCloudSync();
     }
 
     function renderPhotobook() {
       const grid = document.getElementById('photobook-grid');
-      // Photobook renders all logs, but visual priority given to those with photos
-      if (weightLogs.length === 0) {
+      if(!grid) return;
+      
+      const safeLogs = weightLogs.filter(l => l && typeof l === 'object');
+      if (safeLogs.length === 0) {
         grid.innerHTML = '<div class="col-span-full text-center p-10 bg-slate-100 border-4 border-dashed border-slate-300 rounded-3xl"><i data-lucide="image" class="w-12 h-12 text-slate-400 mx-auto mb-4"></i><p class="text-lg font-black uppercase tracking-widest text-slate-500">No logs yet. Discipline starts today.</p></div>';
-        lucide.createIcons(); return;
+        if(window.lucide) lucide.createIcons(); return;
       }
-      grid.innerHTML = weightLogs.map(l => {
+      grid.innerHTML = safeLogs.map(l => {
         if(l.photo) {
           return `
             <div class="relative group rounded-2xl overflow-hidden shadow-xl border-4 border-slate-900 bg-slate-900 aspect-[3/4]">
               <img src="${l.photo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100">
               <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 pt-16 flex flex-col justify-end">
                 <div class="flex justify-between items-end mb-2">
-                  <div><div class="text-white font-black text-2xl tracking-tighter">${l.weight} <span class="text-sm text-red-500 font-bold uppercase">kg</span></div><div class="text-slate-400 text-xs font-black uppercase tracking-widest mt-1">${l.date}</div></div>
+                  <div><div class="text-white font-black text-2xl tracking-tighter">${l.weight || 0} <span class="text-sm text-red-500 font-bold uppercase">kg</span></div><div class="text-slate-400 text-xs font-black uppercase tracking-widest mt-1">${l.date || ''}</div></div>
                   <i data-lucide="activity" class="text-red-600 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></i>
                 </div>
                 <div class="grid grid-cols-4 gap-1 border-t border-slate-700/50 pt-2 mt-1">
@@ -655,9 +711,9 @@
         } else {
           return `
             <div class="relative group rounded-2xl overflow-hidden shadow-sm border-2 border-slate-300 bg-slate-50 aspect-[3/4] flex flex-col justify-between p-4">
-               <div class="text-slate-500 text-xs font-black uppercase tracking-widest">${l.date}</div>
+               <div class="text-slate-500 text-xs font-black uppercase tracking-widest">${l.date || ''}</div>
                <div class="text-center">
-                 <div class="text-slate-900 font-black text-3xl tracking-tighter">${l.weight} <span class="text-sm text-red-600 font-bold uppercase">kg</span></div>
+                 <div class="text-slate-900 font-black text-3xl tracking-tighter">${l.weight || 0} <span class="text-sm text-red-600 font-bold uppercase">kg</span></div>
                  <div class="text-[10px] text-slate-400 font-bold uppercase mt-1">No Image Logged</div>
                </div>
                <div class="grid grid-cols-4 gap-1 border-t border-slate-300 pt-2 mt-1">
@@ -670,18 +726,37 @@
           `;
         }
       }).join('');
-      lucide.createIcons();
+      if(window.lucide) lucide.createIcons();
     }
 
     function calculateCalories(e) {
       e.preventDefault();
-      const age = Number(document.getElementById('cal-age').value), gender = document.getElementById('cal-gender').value, weight = Number(document.getElementById('cal-weight').value), height = Number(document.getElementById('cal-height').value), activity = Number(document.getElementById('cal-activity').value);
-      let bmr = (10 * weight) + (6.25 * height) - (5 * age); bmr += (gender === 'male') ? 5 : -161; currentTdee = Math.round(bmr * activity);
+      const ageInput = document.getElementById('cal-age');
+      const genderInput = document.getElementById('cal-gender');
+      const weightInput = document.getElementById('cal-weight');
+      const heightInput = document.getElementById('cal-height');
+      const activityInput = document.getElementById('cal-activity');
+      
+      const age = ageInput ? Number(ageInput.value) : 25;
+      const gender = genderInput ? genderInput.value : 'male';
+      const weight = weightInput ? Number(weightInput.value) : 75;
+      const height = heightInput ? Number(heightInput.value) : 175;
+      const activity = activityInput ? Number(activityInput.value) : 1.55;
+
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age); 
+      bmr += (gender === 'male') ? 5 : -161; 
+      currentTdee = Math.round(bmr * activity);
       renderCalorieResults(weight);
     }
-    function setCyclePhase(phase) { currentCyclePhase = phase; const weight = Number(document.getElementById('cal-weight').value) || 75; if(currentTdee) renderCalorieResults(weight); }
+    function setCyclePhase(phase) { 
+      currentCyclePhase = phase; 
+      const weightInput = document.getElementById('cal-weight');
+      const weight = weightInput ? Number(weightInput.value) : 75; 
+      if(currentTdee) renderCalorieResults(weight); 
+    }
     function renderCalorieResults(weight) {
-      const container = document.getElementById('calorie-results'); if (!currentTdee) return;
+      const container = document.getElementById('calorie-results'); 
+      if (!currentTdee || !container) return;
       let targetKcal = currentTdee, phaseText = "Energy balance maintained.";
       if(currentCyclePhase === 'bulk') { targetKcal += 300; phaseText = "+300 kcal. Muscle accretion phase."; }
       if(currentCyclePhase === 'cut') { targetKcal -= 500; phaseText = "-500 kcal. Fat oxidation phase."; }
@@ -707,15 +782,13 @@
     }
 
     // --- Tab 4: Habit Tracker ---
-    let habits = JSON.parse(localStorage.getItem('dh_habits')) || [
-      { id: 1, name: 'NO PORN / MASTURBATION', daysClean: 12 }, { id: 2, name: 'FIDELITY', daysClean: 45 }, { id: 3, name: 'NO JUNK FOOD', daysClean: 5 }
-    ];
+    let habits = safeGetArray('dh_habits', DEFAULT_HABITS);
     let resettingId = null;
 
     function addHabit(e) {
       e.preventDefault();
       const input = document.getElementById('new-habit-name');
-      if(!input.value) return;
+      if(!input || !input.value) return;
       habits.push({ id: Date.now(), name: input.value.toUpperCase(), daysClean: 0 });
       localStorage.setItem('dh_habits', JSON.stringify(habits));
       input.value = '';
@@ -723,24 +796,27 @@
     }
 
     function removeHabit(id) {
-      habits = habits.filter(h => h.id !== id);
+      habits = habits.filter(h => h && h.id !== id);
       localStorage.setItem('dh_habits', JSON.stringify(habits));
       renderHabits(); triggerCloudSync();
     }
 
-    function incrementHabit(id) { const h = habits.find(h => h.id === id); if(h) { h.daysClean++; localStorage.setItem('dh_habits', JSON.stringify(habits)); renderHabits(); triggerCloudSync(); } }
+    function incrementHabit(id) { const h = habits.find(h => h && h.id === id); if(h) { h.daysClean++; localStorage.setItem('dh_habits', JSON.stringify(habits)); renderHabits(); triggerCloudSync(); } }
     function startResetHabit(id) { resettingId = id; renderHabits(); }
     function cancelResetHabit() { resettingId = null; renderHabits(); }
-    function confirmResetHabit(id) { const h = habits.find(h => h.id === id); if(h) { h.daysClean = 0; localStorage.setItem('dh_habits', JSON.stringify(habits)); triggerCloudSync(); } resettingId = null; renderHabits(); }
+    function confirmResetHabit(id) { const h = habits.find(h => h && h.id === id); if(h) { h.daysClean = 0; localStorage.setItem('dh_habits', JSON.stringify(habits)); triggerCloudSync(); } resettingId = null; renderHabits(); }
 
     function renderHabits() {
       const container = document.getElementById('habits-container');
-      if (habits.length === 0) {
+      if(!container) return;
+
+      const safeHabits = habits.filter(h => h && typeof h === 'object');
+      if (safeHabits.length === 0) {
         container.innerHTML = '<div class="col-span-full text-center p-8 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold uppercase tracking-wider">No active trackers. Add a habit to override.</div>';
-        lucide.createIcons(); return;
+        if(window.lucide) lucide.createIcons(); return;
       }
-      container.innerHTML = habits.map(h => {
-        const progress = Math.min((h.daysClean / 90) * 100, 100);
+      container.innerHTML = safeHabits.map(h => {
+        const progress = Math.min(((h.daysClean || 0) / 90) * 100, 100);
         let buttons = resettingId === h.id ? `
             <button onclick="confirmResetHabit(${h.id})" class="flex-1 bg-red-600 text-white py-4 rounded-xl text-sm font-black uppercase tracking-wider hover:bg-red-700 transition">Execute</button>
             <button onclick="cancelResetHabit()" class="flex-1 bg-slate-200 text-slate-800 py-4 rounded-xl text-sm font-black uppercase tracking-wider hover:bg-slate-300 transition">Abort</button>
@@ -750,57 +826,99 @@
           `;
         return `
           <div class="bg-white border-4 border-slate-900 rounded-2xl p-6 md:p-8 flex flex-col items-center text-center shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] relative overflow-hidden group">
-            <button onclick="removeHabit(${h.id})" class="absolute top-3 right-3 text-slate-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-50 p-1 rounded-md"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <button onclick="removeHabit(${h.id})" class="absolute top-3 right-3 text-slate-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-50 p-1 rounded-md z-10"><i data-lucide="x" class="w-4 h-4"></i></button>
             <div class="absolute top-0 left-0 h-2 bg-red-600 transition-all duration-1000" style="width: ${progress}%"></div>
-            <h3 class="font-black uppercase tracking-tighter text-lg text-slate-900 mb-6 h-12 flex items-center justify-center leading-tight mt-4">${h.name}</h3>
-            <div class="text-7xl font-black text-slate-900 mb-2 tracking-tighter">${h.daysClean}</div>
+            <h3 class="font-black uppercase tracking-tighter text-lg text-slate-900 mb-6 h-12 flex items-center justify-center leading-tight mt-4">${h.name || '-'}</h3>
+            <div class="text-7xl font-black text-slate-900 mb-2 tracking-tighter">${h.daysClean || 0}</div>
             <span class="text-xs font-bold text-red-500 uppercase tracking-widest mb-8">Days Clean</span>
             <div class="flex gap-2 w-full mt-auto">${buttons}</div>
           </div>
         `;
       }).join('');
-      lucide.createIcons();
+      if(window.lucide) lucide.createIcons();
     }
 
     // --- Tab 5: Screen Time ---
-    let screenUsed = localStorage.getItem('dh_screenUsed') !== null ? parseInt(localStorage.getItem('dh_screenUsed')) : 0; const screenBudget = 120;
+    let screenUsed = safeGetNum('dh_screenUsed', 0); 
+    const screenBudget = 120;
+    
     function updateScreenTime(mins) { screenUsed += mins; localStorage.setItem('dh_screenUsed', screenUsed); renderScreenTime(); triggerCloudSync(); }
     function resetScreenTime() { screenUsed = 0; localStorage.setItem('dh_screenUsed', screenUsed); renderScreenTime(); triggerCloudSync(); }
     function renderScreenTime() {
-      document.getElementById('screen-used-label').innerText = `USED: ${screenUsed} MIN`;
+      const label = document.getElementById('screen-used-label');
+      if (label) label.innerText = `USED: ${screenUsed} MIN`;
       const pct = Math.min((screenUsed / screenBudget) * 100, 100);
       const bar = document.getElementById('screen-progress');
-      bar.style.width = `${pct}%`; bar.className = 'h-full transition-all duration-500 ' + (pct >= 100 ? 'bg-red-600' : pct > 75 ? 'bg-amber-500' : 'bg-slate-900');
+      if (bar) {
+        bar.style.width = `${pct}%`; 
+        bar.className = 'h-full transition-all duration-500 ' + (pct >= 100 ? 'bg-red-600' : pct > 75 ? 'bg-amber-500' : 'bg-slate-900');
+      }
     }
 
     // --- Tab 6: Budget & Finance ---
-    let transactions = JSON.parse(localStorage.getItem('dh_transactions')) || [];
-    let monthlyBudgetVal = localStorage.getItem('dh_monthlyBudget') !== null ? parseInt(localStorage.getItem('dh_monthlyBudget')) : 50000;
+    let transactions = safeGetArray('dh_transactions', []);
+    let monthlyBudgetVal = safeGetNum('dh_monthlyBudget', 50000);
 
-    function updateBudget() { monthlyBudgetVal = Number(document.getElementById('monthly-budget-input').value) || 0; localStorage.setItem('dh_monthlyBudget', monthlyBudgetVal); renderBudget(); triggerCloudSync(); }
-    function toggleBudgetReset() { document.getElementById('budget-reset-btn').classList.add('hidden'); document.getElementById('budget-reset-confirm').classList.remove('hidden'); document.getElementById('budget-reset-confirm').classList.add('flex'); }
+    function updateBudget() { 
+      const budgetInput = document.getElementById('monthly-budget-input');
+      monthlyBudgetVal = budgetInput ? (Number(budgetInput.value) || 0) : 0; 
+      localStorage.setItem('dh_monthlyBudget', monthlyBudgetVal); 
+      renderBudget(); triggerCloudSync(); 
+    }
+    function toggleBudgetReset() { 
+      const btn = document.getElementById('budget-reset-btn');
+      const confirmDiv = document.getElementById('budget-reset-confirm');
+      if(btn) btn.classList.add('hidden'); 
+      if(confirmDiv) {
+        confirmDiv.classList.remove('hidden'); 
+        confirmDiv.classList.add('flex'); 
+      }
+    }
     function confirmResetBudget(confirm) {
       if(confirm) { transactions = []; localStorage.setItem('dh_transactions', JSON.stringify(transactions)); triggerCloudSync(); }
-      document.getElementById('budget-reset-btn').classList.remove('hidden'); document.getElementById('budget-reset-confirm').classList.add('hidden'); document.getElementById('budget-reset-confirm').classList.remove('flex');
+      const btn = document.getElementById('budget-reset-btn');
+      const confirmDiv = document.getElementById('budget-reset-confirm');
+      if(btn) btn.classList.remove('hidden'); 
+      if(confirmDiv) {
+        confirmDiv.classList.add('hidden'); 
+        confirmDiv.classList.remove('flex');
+      }
       renderBudget();
     }
     function addTransaction(e) {
       e.preventDefault();
-      transactions.unshift({ id: Date.now(), amount: parseFloat(document.getElementById('tx-amount').value), desc: document.getElementById('tx-desc').value, type: document.getElementById('tx-type').value, date: new Date().toISOString() });
+      const amountInput = document.getElementById('tx-amount');
+      const descInput = document.getElementById('tx-desc');
+      const typeInput = document.getElementById('tx-type');
+      
+      transactions.unshift({ 
+        id: Date.now(), 
+        amount: parseFloat(amountInput ? amountInput.value : 0), 
+        desc: descInput ? descInput.value : '', 
+        type: typeInput ? typeInput.value : 'expense', 
+        date: new Date().toISOString() 
+      });
       localStorage.setItem('dh_transactions', JSON.stringify(transactions));
-      document.getElementById('tx-amount').value = ''; document.getElementById('tx-desc').value = ''; renderBudget(); triggerCloudSync();
+      
+      if(amountInput) amountInput.value = ''; 
+      if(descInput) descInput.value = ''; 
+      renderBudget(); triggerCloudSync();
     }
-    function removeTx(id) { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('dh_transactions', JSON.stringify(transactions)); renderBudget(); triggerCloudSync(); }
+    function removeTx(id) { transactions = transactions.filter(t => t && t.id !== id); localStorage.setItem('dh_transactions', JSON.stringify(transactions)); renderBudget(); triggerCloudSync(); }
 
     function renderBudget() {
-      document.getElementById('monthly-budget-input').value = monthlyBudgetVal;
+      const budgetInput = document.getElementById('monthly-budget-input');
+      if (budgetInput) budgetInput.value = monthlyBudgetVal;
+      
       const currentMonthStr = new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
-      document.getElementById('current-month-title').innerText = `Current Month (${currentMonthStr.toUpperCase()})`;
+      const currentMonthTitle = document.getElementById('current-month-title');
+      if (currentMonthTitle) currentMonthTitle.innerText = `Current Month (${currentMonthStr.toUpperCase()})`;
 
-      const monthlyData = transactions.reduce((acc, t) => {
+      const safeTx = transactions.filter(t => t && typeof t === 'object');
+      const monthlyData = safeTx.reduce((acc, t) => {
         const mY = new Date(t.date).toLocaleString('default', { month: 'short', year: 'numeric' });
         if (!acc[mY]) acc[mY] = { label: mY, invested: 0, spent: 0, ts: new Date(t.date).getTime() };
-        if (t.type === 'investment') acc[mY].invested += t.amount; else acc[mY].spent += t.amount; return acc;
+        if (t.type === 'investment') acc[mY].invested += (t.amount||0); else acc[mY].spent += (t.amount||0); return acc;
       }, {});
 
       const sortedMonths = Object.values(monthlyData).sort((a, b) => a.ts - b.ts);
@@ -808,102 +926,144 @@
       const netUsed = curData.invested + curData.spent, remaining = monthlyBudgetVal - netUsed;
       const pInv = monthlyBudgetVal > 0 ? ((curData.invested / monthlyBudgetVal) * 100).toFixed(1) : 0, pSpn = monthlyBudgetVal > 0 ? ((curData.spent / monthlyBudgetVal) * 100).toFixed(1) : 0;
 
-      document.getElementById('budget-dashboard').innerHTML = `
-        <div class="bg-slate-900 p-4 rounded-xl border-4 border-slate-800 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Invested</span><span class="text-xl font-black text-white mt-1">₹${curData.invested.toFixed(0)}</span><span class="text-[10px] text-slate-900 font-black mt-2 bg-white px-3 py-1 rounded-full uppercase tracking-wider">${pInv}%</span></div>
-        <div class="bg-red-50 p-4 rounded-xl border-4 border-red-200 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1"><span class="text-[10px] font-black text-red-600 uppercase tracking-widest">Spent</span><span class="text-xl font-black text-red-900 mt-1">₹${curData.spent.toFixed(0)}</span><span class="text-[10px] text-red-900 font-black mt-2 bg-red-200 px-3 py-1 rounded-full uppercase tracking-wider">${pSpn}%</span></div>
-        <div class="bg-slate-100 p-4 rounded-xl border-4 border-slate-300 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-2"><span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Remaining</span><span class="text-3xl font-black mt-1 ${remaining < 0 ? 'text-red-600' : 'text-slate-900'}">₹${remaining.toFixed(0)}</span><div class="w-full bg-slate-300 h-2 rounded-full mt-3 overflow-hidden"><div class="bg-slate-900 h-full" style="width: ${Math.min((netUsed / monthlyBudgetVal) * 100, 100)}%"></div></div></div>
-      `;
+      const dashboard = document.getElementById('budget-dashboard');
+      if (dashboard) {
+        dashboard.innerHTML = `
+          <div class="bg-slate-900 p-4 rounded-xl border-4 border-slate-800 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Invested</span><span class="text-xl font-black text-white mt-1">₹${curData.invested.toFixed(0)}</span><span class="text-[10px] text-slate-900 font-black mt-2 bg-white px-3 py-1 rounded-full uppercase tracking-wider">${pInv}%</span></div>
+          <div class="bg-red-50 p-4 rounded-xl border-4 border-red-200 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1"><span class="text-[10px] font-black text-red-600 uppercase tracking-widest">Spent</span><span class="text-xl font-black text-red-900 mt-1">₹${curData.spent.toFixed(0)}</span><span class="text-[10px] text-red-900 font-black mt-2 bg-red-200 px-3 py-1 rounded-full uppercase tracking-wider">${pSpn}%</span></div>
+          <div class="bg-slate-100 p-4 rounded-xl border-4 border-slate-300 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-2"><span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Remaining</span><span class="text-3xl font-black mt-1 ${remaining < 0 ? 'text-red-600' : 'text-slate-900'}">₹${remaining.toFixed(0)}</span><div class="w-full bg-slate-300 h-2 rounded-full mt-3 overflow-hidden"><div class="bg-slate-900 h-full" style="width: ${Math.min((netUsed / monthlyBudgetVal) * 100, 100)}%"></div></div></div>
+        `;
+      }
 
       const list = document.getElementById('tx-list');
-      if (transactions.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-4 bg-white rounded-xl text-center">No ledger entries.</p>';
-      else list.innerHTML = transactions.map(t => `<li class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white rounded-xl border-2 border-slate-200 gap-3"><div class="flex flex-col"><span class="text-sm font-black uppercase tracking-tight text-slate-900">${t.desc}</span><span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">${new Date(t.date).toLocaleDateString()}</span></div><div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t-2 sm:border-t-0 border-slate-100 pt-3 sm:pt-0"><span class="font-mono font-black text-lg ${t.type === 'investment' ? 'text-slate-900' : 'text-red-600'}">${t.type === 'investment' ? '+' : '-'}₹${t.amount.toFixed(2)}</span><button onclick="removeTx(${t.id})" class="text-slate-400 hover:text-red-600 bg-slate-50 p-2 rounded-lg hover:bg-red-50"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></li>`).join('');
+      if (list) {
+        if (safeTx.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-4 bg-white rounded-xl text-center">No ledger entries.</p>';
+        else list.innerHTML = safeTx.map(t => `<li class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white rounded-xl border-2 border-slate-200 gap-3"><div class="flex flex-col"><span class="text-sm font-black uppercase tracking-tight text-slate-900">${t.desc || '-'}</span><span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">${new Date(t.date).toLocaleDateString()}</span></div><div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t-2 sm:border-t-0 border-slate-100 pt-3 sm:pt-0"><span class="font-mono font-black text-lg ${t.type === 'investment' ? 'text-slate-900' : 'text-red-600'}">${t.type === 'investment' ? '+' : '-'}₹${(t.amount||0).toFixed(2)}</span><button onclick="removeTx(${t.id})" class="text-slate-400 hover:text-red-600 bg-slate-50 p-2 rounded-lg hover:bg-red-50"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></li>`).join('');
+      }
 
       const chart = document.getElementById('chart-container');
-      const maxInv = Math.max(...sortedMonths.map(m => m.invested), 1);
-      if (sortedMonths.length === 0) chart.innerHTML = '<p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-auto">No data.</p>';
-      else chart.innerHTML = sortedMonths.map(m => `<div class="flex flex-col items-center flex-1 group relative"><div class="absolute -top-10 bg-slate-900 text-white font-black text-[10px] py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">₹${m.invested.toLocaleString()}</div><div class="w-full bg-slate-800 rounded-t-sm hover:bg-red-600 transition-colors" style="height: ${Math.max((m.invested / maxInv) * 100, 5)}%"></div><div class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-2 truncate w-full text-center">${m.label.split(' ')[0]}</div></div>`).join('');
-      lucide.createIcons();
+      if (chart) {
+        const maxInv = Math.max(...sortedMonths.map(m => m.invested), 1);
+        if (sortedMonths.length === 0) chart.innerHTML = '<p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-auto">No data.</p>';
+        else chart.innerHTML = sortedMonths.map(m => `<div class="flex flex-col items-center flex-1 group relative"><div class="absolute -top-10 bg-slate-900 text-white font-black text-[10px] py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">₹${m.invested.toLocaleString()}</div><div class="w-full bg-slate-800 rounded-t-sm hover:bg-red-600 transition-colors" style="height: ${Math.max((m.invested / maxInv) * 100, 5)}%"></div><div class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-2 truncate w-full text-center">${m.label.split(' ')[0]}</div></div>`).join('');
+      }
+      if(window.lucide) lucide.createIcons();
     }
 
     // --- Tab 8: Study Logger ---
-    let studyLogs = JSON.parse(localStorage.getItem('dh_studyLogs')) || [];
+    let studyLogs = safeGetArray('dh_studyLogs', []);
 
     function addStudyLog(e) {
         e.preventDefault();
-        const topic = document.getElementById('study-topic').value;
-        const duration = parseInt(document.getElementById('study-duration').value);
-        const notes = document.getElementById('study-notes').value;
+        const topicInput = document.getElementById('study-topic');
+        const durationInput = document.getElementById('study-duration');
+        const notesInput = document.getElementById('study-notes');
+
+        const topic = topicInput ? topicInput.value : '';
+        const duration = durationInput ? parseInt(durationInput.value) : 0;
+        const notes = notesInput ? notesInput.value : '';
+        
         if (!topic || !duration) return;
         
         studyLogs.unshift({ id: Date.now().toString(), topic, duration, notes, timestamp: Date.now(), dateStr: new Date().toLocaleDateString() });
         localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs));
         
-        document.getElementById('study-topic').value = '';
-        document.getElementById('study-duration').value = '';
-        document.getElementById('study-notes').value = '';
+        if(topicInput) topicInput.value = '';
+        if(durationInput) durationInput.value = '';
+        if(notesInput) notesInput.value = '';
         renderStudyLogs(); triggerCloudSync();
     }
 
     function deleteStudyLog(id) {
-        studyLogs = studyLogs.filter(l => l.id !== id);
+        studyLogs = studyLogs.filter(l => l && l.id !== id);
         localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs));
         renderStudyLogs(); triggerCloudSync();
     }
 
     function renderStudyLogs() {
         const list = document.getElementById('study-list');
-        if (studyLogs.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-6 bg-slate-100 rounded-xl text-center border-2 border-dashed border-slate-300">No logs yet. Start learning.</p>';
-        else list.innerHTML = studyLogs.map(l => `
+        if(!list) return;
+        const safeLogs = studyLogs.filter(l => l && typeof l === 'object');
+
+        if (safeLogs.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-6 bg-slate-100 rounded-xl text-center border-2 border-dashed border-slate-300">No logs yet. Start learning.</p>';
+        else list.innerHTML = safeLogs.map(l => `
             <div class="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-slate-400">
-                <div class="flex flex-col"><h4 class="font-black uppercase tracking-tight text-slate-900 text-lg">${l.topic}</h4>${l.notes ? `<p class="text-sm font-bold text-slate-600 mt-2 bg-slate-50 p-4 rounded-xl border-l-4 border-slate-900 shadow-inner">${l.notes}</p>` : ''}<span class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-3">${l.dateStr}</span></div>
-                <div class="flex items-center gap-4 border-t-2 sm:border-t-0 border-slate-100 pt-4 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end shrink-0"><span class="font-black text-2xl text-slate-900">${l.duration} <span class="text-xs text-red-600 uppercase tracking-widest">min</span></span><button onclick="deleteStudyLog('${l.id}')" class="bg-slate-100 p-3 rounded-xl text-slate-400 hover:text-white hover:bg-red-600 transition-colors shadow-sm"><i data-lucide="trash-2" class="w-5 h-5"></i></button></div>
+                <div class="flex flex-col"><h4 class="font-black uppercase tracking-tight text-slate-900 text-lg">${l.topic || '-'}</h4>${l.notes ? `<p class="text-sm font-bold text-slate-600 mt-2 bg-slate-50 p-4 rounded-xl border-l-4 border-slate-900 shadow-inner">${l.notes}</p>` : ''}<span class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-3">${l.dateStr || ''}</span></div>
+                <div class="flex items-center gap-4 border-t-2 sm:border-t-0 border-slate-100 pt-4 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end shrink-0"><span class="font-black text-2xl text-slate-900">${l.duration || 0} <span class="text-xs text-red-600 uppercase tracking-widest">min</span></span><button onclick="deleteStudyLog('${l.id}')" class="bg-slate-100 p-3 rounded-xl text-slate-400 hover:text-white hover:bg-red-600 transition-colors shadow-sm"><i data-lucide="trash-2" class="w-5 h-5"></i></button></div>
             </div>`).join('');
-        lucide.createIcons();
+        if(window.lucide) lucide.createIcons();
         const today = new Date().toLocaleDateString();
-        const totalToday = studyLogs.filter(l => l.dateStr === today).reduce((sum, l) => sum + l.duration, 0);
-        document.getElementById('study-total-today').innerText = totalToday;
+        const totalToday = safeLogs.filter(l => l.dateStr === today).reduce((sum, l) => sum + (l.duration||0), 0);
+        const totalTodayEl = document.getElementById('study-total-today');
+        if (totalTodayEl) totalTodayEl.innerText = totalToday;
     }
 
     // --- Geeta Gyan ---
     const verses = [ { ch: 2, v: 47, t: "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions.", a: "Focus purely on the process. Anxiety comes from outcome-dependency." }, { ch: 6, v: 6, t: "For him who has conquered the mind, the mind is the best of friends; but for one who has failed to do so, his mind will remain the greatest enemy.", a: "Discipline is not punishment; it is the taming of your greatest tool." }, { ch: 3, v: 8, t: "Perform your obligatory duty, because action is indeed better than inaction.", a: "Action cures fear. Take the smallest possible positive action immediately." } ];
-    function renderWisdom() { const v = verses[Math.floor(Math.random() * verses.length)]; document.getElementById('wisdom-content').innerHTML = `<h3 class="text-sm font-black uppercase tracking-widest text-red-500 border-b-2 border-slate-700 inline-block pb-1">Chapter ${v.ch}, Verse ${v.v}</h3><p class="text-2xl md:text-3xl font-black text-white leading-tight font-serif italic tracking-tight">"${v.t}"</p><div class="w-24 h-2 bg-red-600 mx-auto my-6 rounded-full"></div><div class="text-sm text-slate-300 text-left bg-slate-800 p-6 md:p-8 rounded-2xl border-2 border-slate-700 shadow-inner"><strong class="text-red-500 block mb-3 font-black uppercase tracking-widest">Tactical Execution:</strong> <span class="font-bold leading-relaxed">${v.a}</span></div>`; }
+    function renderWisdom() { 
+      const v = verses[Math.floor(Math.random() * verses.length)]; 
+      const wisdomContent = document.getElementById('wisdom-content');
+      if (wisdomContent) {
+        wisdomContent.innerHTML = `<h3 class="text-sm font-black uppercase tracking-widest text-red-500 border-b-2 border-slate-700 inline-block pb-1">Chapter ${v.ch}, Verse ${v.v}</h3><p class="text-2xl md:text-3xl font-black text-white leading-tight font-serif italic tracking-tight">"${v.t}"</p><div class="w-24 h-2 bg-red-600 mx-auto my-6 rounded-full"></div><div class="text-sm text-slate-300 text-left bg-slate-800 p-6 md:p-8 rounded-2xl border-2 border-slate-700 shadow-inner"><strong class="text-red-500 block mb-3 font-black uppercase tracking-widest">Tactical Execution:</strong> <span class="font-bold leading-relaxed">${v.a}</span></div>`; 
+      }
+    }
     function seekGuidance() { renderWisdom(); }
 
     // --- Init & Setup ---
     function renderAll() {
-        renderTasks(); renderTodos(); renderPhotobook(); renderHabits(); 
-        renderScreenTime(); renderBudget(); renderStudyLogs();
-        document.getElementById('gym-streak-val').innerText = gymStreak;
+        try { renderTasks(); } catch(e){ console.error("Err Tasks:",e); }
+        try { renderTodos(); } catch(e){ console.error("Err Todos:",e); }
+        try { renderPhotobook(); } catch(e){ console.error("Err Photo:",e); }
+        try { renderHabits(); } catch(e){ console.error("Err Habits:",e); }
+        try { renderScreenTime(); } catch(e){ console.error("Err Screen:",e); }
+        try { renderBudget(); } catch(e){ console.error("Err Budget:",e); }
+        try { renderStudyLogs(); } catch(e){ console.error("Err Study:",e); }
+        const el = document.getElementById('gym-streak-val');
+        if(el) el.innerText = gymStreak;
     }
 
     function loadSettings() {
-      document.getElementById('setup-apps-script').value = localStorage.getItem('dh_appsScriptUrl') || '';
-      document.getElementById('setup-client-id').value = localStorage.getItem('clientId') || '';
-      document.getElementById('setup-drive').value = localStorage.getItem('driveLink') || '';
+      const appsScriptInput = document.getElementById('setup-apps-script');
+      const clientIdInput = document.getElementById('setup-client-id');
+      const driveInput = document.getElementById('setup-drive');
+
+      if (appsScriptInput) appsScriptInput.value = localStorage.getItem('dh_appsScriptUrl') || '';
+      if (clientIdInput) clientIdInput.value = localStorage.getItem('clientId') || '';
+      if (driveInput) driveInput.value = localStorage.getItem('driveLink') || '';
+      
       updateDriveLinkBtn(); checkAuthStatus(); renderAll(); renderWisdom();
       
-      if(document.getElementById('setup-apps-script').value) {
+      if(appsScriptInput && appsScriptInput.value) {
           pullFromCloud(); 
       }
     }
     
     function saveSettings() {
-      localStorage.setItem('dh_appsScriptUrl', document.getElementById('setup-apps-script').value);
-      localStorage.setItem('clientId', document.getElementById('setup-client-id').value);
-      localStorage.setItem('driveLink', document.getElementById('setup-drive').value);
+      const appsScriptInput = document.getElementById('setup-apps-script');
+      const clientIdInput = document.getElementById('setup-client-id');
+      const driveInput = document.getElementById('setup-drive');
+
+      if(appsScriptInput) localStorage.setItem('dh_appsScriptUrl', appsScriptInput.value);
+      if(clientIdInput) localStorage.setItem('clientId', clientIdInput.value);
+      if(driveInput) localStorage.setItem('driveLink', driveInput.value);
       updateDriveLinkBtn(); triggerCloudSync();
     }
 
     function updateDriveLinkBtn() {
-      const btn = document.getElementById('drive-link-btn'), val = document.getElementById('setup-drive').value;
-      if(val) { btn.href = val; btn.classList.remove('hidden'); } else btn.classList.add('hidden');
+      const btn = document.getElementById('drive-link-btn');
+      const driveInput = document.getElementById('setup-drive');
+      const val = driveInput ? driveInput.value : '';
+      if(btn) {
+        if(val) { btn.href = val; btn.classList.remove('hidden'); } 
+        else { btn.classList.add('hidden'); }
+      }
     }
 
     loadSettings();
 
     // Drive Upload Logic
-    function checkAuthStatus() { const statusEl = document.getElementById('auth-status'); if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { statusEl.innerText = 'AUTHORIZED ✓'; statusEl.classList.replace('text-slate-500', 'text-green-600'); statusEl.classList.replace('border-slate-200', 'border-green-600'); return true; } else { statusEl.innerText = 'UNAUTHORIZED'; return false; } }
-    function authorizeGoogleDrive(silent = false, callback = null) { const clientId = document.getElementById('setup-client-id').value; if (!clientId) { if (!silent) alert('Please enter your Google OAuth Client ID first.'); return; } const tokenClient = google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: 'https://www.googleapis.com/auth/drive.file', callback: (tokenResponse) => { if (tokenResponse && tokenResponse.access_token) { driveToken = tokenResponse.access_token; tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000); localStorage.setItem('driveToken', driveToken); localStorage.setItem('driveTokenExpiry', tokenExpiry); localStorage.setItem('hasAuthorizedDrive', 'true'); checkAuthStatus(); if (!silent) alert('✅ API Authorized!'); if (callback) callback(driveToken); } }, error_callback: (err) => { if (callback) callback(null); } }); if (silent) { tokenClient.requestAccessToken({prompt: ''}); } else { tokenClient.requestAccessToken({prompt: 'consent'}); } }
+    function checkAuthStatus() { const statusEl = document.getElementById('auth-status'); if(!statusEl) return false; if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { statusEl.innerText = 'AUTHORIZED ✓'; statusEl.classList.replace('text-slate-500', 'text-green-600'); statusEl.classList.replace('border-slate-200', 'border-green-600'); return true; } else { statusEl.innerText = 'UNAUTHORIZED'; return false; } }
+    function authorizeGoogleDrive(silent = false, callback = null) { const clientIdInput = document.getElementById('setup-client-id'); const clientId = clientIdInput ? clientIdInput.value : ''; if (!clientId) { if (!silent) alert('Please enter your Google OAuth Client ID first.'); return; } const tokenClient = google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: 'https://www.googleapis.com/auth/drive.file', callback: (tokenResponse) => { if (tokenResponse && tokenResponse.access_token) { driveToken = tokenResponse.access_token; tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000); localStorage.setItem('driveToken', driveToken); localStorage.setItem('driveTokenExpiry', tokenExpiry); localStorage.setItem('hasAuthorizedDrive', 'true'); checkAuthStatus(); if (!silent) alert('✅ API Authorized!'); if (callback) callback(driveToken); } }, error_callback: (err) => { if (callback) callback(null); } }); if (silent) { tokenClient.requestAccessToken({prompt: ''}); } else { tokenClient.requestAccessToken({prompt: 'consent'}); } }
     function getValidToken(callback) { if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { callback(driveToken); } else if (localStorage.getItem('hasAuthorizedDrive') === 'true') { authorizeGoogleDrive(true, callback); } else { callback(null); } }
     
     async function handlePhotoUpload(e) { 
@@ -914,12 +1074,13 @@
         if (!token) { 
           alert('⚠️ Google Drive unauthorized. Saving locally.'); 
           const r = new FileReader(); 
-          r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; 
+          r.onload = (evt) => { photoPreviewBase64 = evt.target.result; if(preview){preview.src = photoPreviewBase64; preview.classList.remove('hidden');} }; 
           r.readAsDataURL(file); 
           return; 
         } 
-        status.classList.remove('hidden'); 
-        document.getElementById('photo-upload').disabled = true; 
+        if(status) status.classList.remove('hidden'); 
+        const photoUpload = document.getElementById('photo-upload');
+        if(photoUpload) photoUpload.disabled = true; 
         const metadata = { name: `Discipline_Photo_${new Date().toISOString().split('T')[0]}_${file.name}`, mimeType: file.type }; 
         const formData = new FormData(); 
         formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' })); 
@@ -929,11 +1090,11 @@
           if (res.ok) { 
             const data = await res.json(); 
             const r = new FileReader(); 
-            r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; 
+            r.onload = (evt) => { photoPreviewBase64 = evt.target.result; if(preview){preview.src = photoPreviewBase64; preview.classList.remove('hidden');} }; 
             r.readAsDataURL(file); 
             alert(`✅ Synced to Google Drive! File ID: ${data.id}`); 
           } else throw new Error('Upload failed.'); 
-        } catch (err) { alert('Sync failed.'); } finally { status.classList.add('hidden'); document.getElementById('photo-upload').disabled = false; } 
+        } catch (err) { alert('Sync failed.'); } finally { if(status) status.classList.add('hidden'); if(photoUpload) photoUpload.disabled = false; } 
       }); 
     }
   </script>
