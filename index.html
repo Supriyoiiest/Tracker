@@ -6,7 +6,7 @@
   <title>Discipline Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Identity Services for OAuth2 -->
+  <!-- Google Identity Services for OAuth2 (Drive Image Sync) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     /* Hide scrollbar for the tab container */
@@ -40,8 +40,8 @@
       <button onclick="switchTab('detox')" id="tab-btn-detox" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-wider text-sm transition-all shrink-0 whitespace-nowrap text-slate-500 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="smartphone" class="w-5 h-5"></i> Detox</button>
       <button onclick="switchTab('budget')" id="tab-btn-budget" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-wider text-sm transition-all shrink-0 whitespace-nowrap text-slate-500 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="wallet" class="w-5 h-5"></i> Finance</button>
       <button onclick="switchTab('wisdom')" id="tab-btn-wisdom" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-wider text-sm transition-all shrink-0 whitespace-nowrap text-slate-500 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="book-open" class="w-5 h-5"></i> Wisdom</button>
-      <button onclick="switchTab('setup')" id="tab-btn-setup" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-wider text-sm transition-all shrink-0 whitespace-nowrap text-slate-500 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="w-5 h-5"></i> Setup</button>
       <button onclick="switchTab('study')" id="tab-btn-study" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-wider text-sm transition-all shrink-0 whitespace-nowrap text-slate-500 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="graduation-cap" class="w-5 h-5"></i> Study</button>
+      <button onclick="switchTab('setup')" id="tab-btn-setup" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-wider text-sm transition-all shrink-0 whitespace-nowrap text-slate-500 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="w-5 h-5"></i> Setup</button>
     </div>
 
     <!-- Tab Contents Container -->
@@ -231,7 +231,7 @@
           <div class="flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border-2 border-slate-300">
               <label class="text-xs font-black uppercase tracking-widest text-slate-700">Budget: ₹</label>
-              <input type="number" id="monthly-budget-input" value="50000" onchange="updateBudget()" class="w-24 p-2 border-2 border-slate-300 rounded-lg bg-white outline-none focus:border-slate-900 text-sm font-bold">
+              <input type="number" id="monthly-budget-input" onchange="updateBudget()" class="w-24 p-2 border-2 border-slate-300 rounded-lg bg-white outline-none focus:border-slate-900 text-sm font-bold">
             </div>
             <div id="budget-reset-confirm" class="hidden items-center gap-2 bg-red-100 p-2 rounded-xl border-2 border-red-300">
               <span class="text-xs font-black uppercase text-red-800 px-2">Erase?</span>
@@ -283,13 +283,13 @@
         <button onclick="seekGuidance()" class="bg-red-600 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-red-700 transition-all transform hover:scale-105 active:scale-95">Seek Guidance</button>
       </div>
 
-      <!-- TAB 9: STUDY LOGGER -->
+      <!-- TAB 8: STUDY LOGGER -->
       <div id="tab-study" class="tab-content hidden space-y-8">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-4 border-slate-900 pb-4">
           <div>
             <h2 class="text-2xl font-black uppercase tracking-tight flex items-center gap-3"><i data-lucide="graduation-cap" class="text-slate-900 w-8 h-8"></i> Knowledge Acquisition</h2>
             <p class="text-sm font-bold uppercase tracking-wider text-slate-500 mt-2">Active Recall Protocol (Karpicke & Roediger, 2008).</p>
-            <div id="sync-status" class="text-xs font-black uppercase tracking-wider text-amber-500 mt-2 animate-pulse">Initializing Cloud Sync...</div>
+            <div id="sync-status" class="text-xs font-black uppercase tracking-wider text-amber-500 mt-2 animate-pulse">Initializing Setup...</div>
           </div>
           <div class="bg-slate-900 text-white p-4 rounded-xl border-4 border-slate-800 text-center min-w-[120px]">
             <span class="block text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Today's Focus</span>
@@ -320,7 +320,10 @@
             </form>
           </div>
           <div class="lg:col-span-2 space-y-4">
-            <h3 class="font-black uppercase tracking-widest text-slate-900 mb-2">Session History</h3>
+            <h3 class="font-black uppercase tracking-widest text-slate-900 mb-2 flex justify-between items-center">
+                <span>Session History</span>
+                <button onclick="pullFromCloud()" class="text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-lg hover:bg-slate-300 transition flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Sync Now</button>
+            </h3>
             <div id="study-list" class="space-y-4 max-h-[550px] overflow-y-auto pr-2">
               <!-- JS Populated -->
             </div>
@@ -328,36 +331,38 @@
         </div>
       </div>
 
-      <!-- TAB 8: GLOBAL SETUP -->
+      <!-- TAB 9: GLOBAL SETUP -->
       <div id="tab-setup" class="tab-content hidden max-w-3xl mx-auto space-y-8">
         <h2 class="text-2xl font-black uppercase tracking-tight mb-6 flex items-center gap-3 border-b-4 border-slate-900 pb-2"><i data-lucide="globe" class="text-slate-900 w-8 h-8"></i> Infrastructure Setup</h2>
-        <p class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b-2 border-slate-200 pb-6">Configure secure OAuth 2.0 to sync progress to your personal Drive seamlessly.</p>
+        <p class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b-2 border-slate-200 pb-6">Configure Serverless Cloud Sync (100% Free via Google Apps Script) and Drive OAuth.</p>
         
+        <!-- Apps Script Sync Configuration -->
+        <div class="bg-blue-50 border-2 border-blue-200 p-8 rounded-3xl shadow-sm space-y-6">
+            <h3 class="font-black uppercase tracking-widest text-blue-900 flex items-center gap-3 border-b-2 border-blue-500 inline-flex pb-1"><i data-lucide="database" class="w-6 h-6"></i> Cloud Database Sync</h3>
+            <div>
+              <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Google Apps Script Web App URL</label>
+              <input type="url" id="setup-apps-script" oninput="saveSettings()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-4 border-2 border-slate-300 rounded-xl font-mono text-sm font-bold focus:border-blue-600 outline-none bg-white">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-3">Paste your deployed GAS URL here. Your trainer can view the synced Google Sheet live.</p>
+            </div>
+        </div>
+
         <div class="bg-slate-50 border-2 border-slate-200 p-8 rounded-3xl shadow-sm space-y-6">
-          <h3 class="font-black uppercase tracking-widest text-slate-900 flex items-center gap-3 border-b-2 border-red-500 inline-flex pb-1"><i data-lucide="hard-drive" class="w-6 h-6"></i> Drive API Key</h3>
+          <h3 class="font-black uppercase tracking-widest text-slate-900 flex items-center gap-3 border-b-2 border-red-500 inline-flex pb-1"><i data-lucide="hard-drive" class="w-6 h-6"></i> Drive API Key (Photos)</h3>
           <div>
             <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Google OAuth Client ID</label>
             <input type="text" id="setup-client-id" oninput="saveSettings()" placeholder="YOUR_CLIENT_ID.apps.googleusercontent.com" class="w-full p-4 border-2 border-slate-300 rounded-xl font-mono text-sm font-bold focus:border-slate-900 outline-none">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-3">Requires OAuth Client ID (Web Application) from Google Cloud Console. Authorize your origin.</p>
           </div>
           <div class="flex flex-col sm:flex-row items-center gap-4 mt-6">
-            <button onclick="authorizeGoogleDrive(false)" class="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg">Authorize API</button>
+            <button onclick="authorizeGoogleDrive(false)" class="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg">Authorize Drive</button>
             <span id="auth-status" class="text-sm font-black uppercase tracking-wider text-slate-500 bg-white px-4 py-2 rounded-lg border-2 border-slate-200">Unauthorized</span>
           </div>
-        </div>
-
-        <div class="bg-slate-900 border-4 border-slate-800 text-white p-8 rounded-3xl shadow-sm">
-          <h3 class="font-black uppercase tracking-widest text-red-500 flex items-center gap-3 mb-4"><i data-lucide="link" class="w-6 h-6"></i> Quick Access Link</h3>
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Paste your Drive Folder URL for rapid access.</p>
-          <input type="url" id="setup-drive" oninput="saveSettings()" placeholder="https://drive.google.com/..." class="w-full p-4 border-2 border-slate-700 rounded-xl bg-slate-800 text-white font-bold outline-none focus:border-red-500">
-          <a id="drive-link-btn" href="#" target="_blank" class="hidden mt-6 inline-block bg-red-600 text-white text-sm px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-700 transition-colors shadow-lg text-center w-full sm:w-auto">Open Folder</a>
         </div>
       </div>
       
     </div>
   </main>
 
-  <!-- Application Logic -->
+  <!-- Application Logic & Cloud Sync Engine -->
   <script>
     lucide.createIcons();
 
@@ -374,15 +379,93 @@
       activeBtn.classList.remove('text-slate-500');
     }
 
+    // --- CLOUD SYNC ENGINE (Google Apps Script) ---
+    let syncTimeout = null;
+
+    function triggerCloudSync() {
+        const url = document.getElementById('setup-apps-script')?.value;
+        if (!url) return;
+        
+        const syncStatus = document.getElementById('sync-status');
+        if(syncStatus) {
+            syncStatus.innerText = 'SYNCING TO CLOUD...';
+            syncStatus.className = "text-xs font-black uppercase tracking-wider text-amber-500 mt-2 animate-pulse";
+        }
+
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(async () => {
+            const payload = {
+                studyLogs, tasks, todos, gymStreak, weightLogs, 
+                habits, screenUsed, transactions, monthlyBudgetVal
+            };
+            
+            try {
+                // Sending POST as plain text to avoid CORS preflight issues with GAS
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify({ action: 'sync', data: payload })
+                });
+                
+                if(syncStatus) {
+                    syncStatus.innerText = 'CLOUD SYNC: ACTIVE (GLOBALLY SYNCED)';
+                    syncStatus.className = "text-xs font-black uppercase tracking-wider text-green-600 mt-2";
+                }
+            } catch (e) {
+                console.error("Sync failed", e);
+                if(syncStatus) {
+                    syncStatus.innerText = 'SYNC FAILED (CHECK URL)';
+                    syncStatus.className = "text-xs font-black uppercase tracking-wider text-red-600 mt-2";
+                }
+            }
+        }, 1500); // Debounce to prevent spamming GAS API
+    }
+
+    async function pullFromCloud() {
+        const url = document.getElementById('setup-apps-script')?.value;
+        if (!url) return;
+
+        const syncStatus = document.getElementById('sync-status');
+        if(syncStatus) {
+            syncStatus.innerText = 'PULLING FROM CLOUD...';
+            syncStatus.className = "text-xs font-black uppercase tracking-wider text-amber-500 mt-2 animate-pulse";
+        }
+        
+        try {
+            const res = await fetch(url + '?action=get');
+            const json = await res.json();
+            
+            if (json && json.data) {
+                if(json.data.studyLogs) { studyLogs = json.data.studyLogs; localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs)); }
+                if(json.data.tasks) { tasks = json.data.tasks; localStorage.setItem('dh_tasks', JSON.stringify(tasks)); }
+                if(json.data.todos) { todos = json.data.todos; localStorage.setItem('dh_todos', JSON.stringify(todos)); }
+                if(json.data.gymStreak !== undefined) { gymStreak = json.data.gymStreak; localStorage.setItem('dh_gymStreak', gymStreak); }
+                if(json.data.weightLogs) { weightLogs = json.data.weightLogs; localStorage.setItem('dh_weightLogs', JSON.stringify(weightLogs)); }
+                if(json.data.habits) { habits = json.data.habits; localStorage.setItem('dh_habits', JSON.stringify(habits)); }
+                if(json.data.screenUsed !== undefined) { screenUsed = json.data.screenUsed; localStorage.setItem('dh_screenUsed', screenUsed); }
+                if(json.data.transactions) { transactions = json.data.transactions; localStorage.setItem('dh_transactions', JSON.stringify(transactions)); }
+                if(json.data.monthlyBudgetVal) { monthlyBudgetVal = json.data.monthlyBudgetVal; localStorage.setItem('dh_monthlyBudget', monthlyBudgetVal); }
+                
+                renderAll();
+                
+                if(syncStatus) {
+                    syncStatus.innerText = 'CLOUD SYNC: ACTIVE (GLOBALLY SYNCED)';
+                    syncStatus.className = "text-xs font-black uppercase tracking-wider text-green-600 mt-2";
+                }
+            }
+        } catch(e) {
+            console.error("Pull failed", e);
+            if(syncStatus) {
+                syncStatus.innerText = 'SYNC ERROR (OFFLINE)';
+                syncStatus.className = "text-xs font-black uppercase tracking-wider text-red-600 mt-2";
+            }
+        }
+    }
+
+
     // --- Tab 1: Timetable & Focus ---
-    let tasks = [
-      { id: 1, time: '05:00 AM', text: 'Wake. Hydrate. Attack.' },
-      { id: 2, time: '05:30 AM', text: 'Lift Heavy' },
-      { id: 3, time: '08:00 AM', text: 'Deep Work Block' },
-    ];
-    let todos = [
-      { id: 1, text: 'Review mission critical goals', completed: false },
-    ];
+    let tasks = JSON.parse(localStorage.getItem('dh_tasks')) || [{ id: 1, time: '05:00 AM', text: 'Wake. Hydrate. Attack.' }];
+    let todos = JSON.parse(localStorage.getItem('dh_todos')) || [{ id: 1, text: 'Review mission critical goals', completed: false }];
 
     function renderTasks() {
       const list = document.getElementById('task-list');
@@ -399,15 +482,19 @@
 
     function addTask(e) {
       e.preventDefault();
-      const time = document.getElementById('task-time').value;
-      const text = document.getElementById('task-text').value;
-      tasks.push({ id: Date.now(), time, text });
+      tasks.push({ id: Date.now(), time: document.getElementById('task-time').value, text: document.getElementById('task-text').value });
+      localStorage.setItem('dh_tasks', JSON.stringify(tasks));
       document.getElementById('task-time').value = '';
       document.getElementById('task-text').value = '';
       renderTasks();
+      triggerCloudSync();
     }
 
-    function removeTask(id) { tasks = tasks.filter(t => t.id !== id); renderTasks(); }
+    function removeTask(id) { 
+      tasks = tasks.filter(t => t.id !== id); 
+      localStorage.setItem('dh_tasks', JSON.stringify(tasks));
+      renderTasks(); triggerCloudSync();
+    }
 
     function renderTodos() {
       const list = document.getElementById('todo-list');
@@ -424,199 +511,61 @@
 
     function addTodo(e) {
       e.preventDefault();
-      const text = document.getElementById('todo-text').value;
-      todos.push({ id: Date.now(), text, completed: false });
+      todos.push({ id: Date.now(), text: document.getElementById('todo-text').value, completed: false });
+      localStorage.setItem('dh_todos', JSON.stringify(todos));
       document.getElementById('todo-text').value = '';
-      renderTodos();
+      renderTodos(); triggerCloudSync();
     }
 
     function toggleTodo(id) {
       const todo = todos.find(t => t.id === id);
       if (todo) todo.completed = !todo.completed;
-      renderTodos();
+      localStorage.setItem('dh_todos', JSON.stringify(todos));
+      renderTodos(); triggerCloudSync();
     }
 
-    function removeTodo(id) { todos = todos.filter(t => t.id !== id); renderTodos(); }
-
-    // Timer
-    let timeLeft = 25 * 60;
-    let isRunning = false;
-    let timerInterval = null;
-
-    function formatTime(sec) {
-      const m = Math.floor(sec / 60).toString().padStart(2, '0');
-      const s = (sec % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
+    function removeTodo(id) { 
+      todos = todos.filter(t => t.id !== id); 
+      localStorage.setItem('dh_todos', JSON.stringify(todos));
+      renderTodos(); triggerCloudSync();
     }
 
+    // Timer Logic
+    let timeLeft = 25 * 60; let isRunning = false; let timerInterval = null;
+    function formatTime(sec) { return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`; }
     function updateTimerUI() {
       document.getElementById('timer-display').innerText = formatTime(timeLeft);
       const btn = document.getElementById('timer-toggle-btn');
       const text = document.getElementById('timer-text');
       if (isRunning) {
-        btn.classList.replace('bg-red-600', 'bg-slate-700');
-        btn.classList.replace('hover:bg-red-700', 'hover:bg-slate-600');
-        btn.classList.remove('shadow-red-600/30');
-        text.innerText = 'Halt';
-        document.getElementById('timer-icon').setAttribute('data-lucide', 'pause');
+        btn.classList.replace('bg-red-600', 'bg-slate-700'); btn.classList.replace('hover:bg-red-700', 'hover:bg-slate-600'); btn.classList.remove('shadow-red-600/30');
+        text.innerText = 'Halt'; document.getElementById('timer-icon').setAttribute('data-lucide', 'pause');
       } else {
-        btn.classList.replace('bg-slate-700', 'bg-red-600');
-        btn.classList.replace('hover:bg-slate-600', 'hover:bg-red-700');
-        btn.classList.add('shadow-red-600/30');
-        text.innerText = 'Engage';
-        document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
+        btn.classList.replace('bg-slate-700', 'bg-red-600'); btn.classList.replace('hover:bg-slate-600', 'hover:bg-red-700'); btn.classList.add('shadow-red-600/30');
+        text.innerText = 'Engage'; document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
       }
       lucide.createIcons();
     }
-
     function toggleTimer() {
       isRunning = !isRunning;
-      if (isRunning) {
-        timerInterval = setInterval(() => {
-          if (timeLeft > 0) { timeLeft--; updateTimerUI(); } 
-          else { clearInterval(timerInterval); isRunning = false; updateTimerUI(); }
-        }, 1000);
-      } else {
-        clearInterval(timerInterval);
-      }
+      if (isRunning) timerInterval = setInterval(() => { if (timeLeft > 0) { timeLeft--; updateTimerUI(); } else { clearInterval(timerInterval); isRunning = false; updateTimerUI(); } }, 1000);
+      else clearInterval(timerInterval);
       updateTimerUI();
     }
+    function resetTimer() { clearInterval(timerInterval); isRunning = false; timeLeft = 25 * 60; updateTimerUI(); }
 
-    function resetTimer() {
-      clearInterval(timerInterval);
-      isRunning = false;
-      timeLeft = 25 * 60;
-      updateTimerUI();
-    }
 
-    // --- Tab 2/3: Gym, Calories, Photobook & Drive API Persistence ---
-    let gymStreak = 3;
-    let weightLogs = [];
-    let photoPreviewBase64 = null;
-    let currentCyclePhase = 'maintenance';
-    let currentTdee = null;
-    
-    // Persistent Token variables
-    let driveToken = localStorage.getItem('driveToken') || null; 
-    let tokenExpiry = localStorage.getItem('driveTokenExpiry') || null;
+    // --- Tab 2/3: Gym, Calories, Photobook ---
+    let gymStreak = localStorage.getItem('dh_gymStreak') !== null ? parseInt(localStorage.getItem('dh_gymStreak')) : 3;
+    let weightLogs = JSON.parse(localStorage.getItem('dh_weightLogs')) || [];
+    let photoPreviewBase64 = null; let currentCyclePhase = 'maintenance'; let currentTdee = null;
+    let driveToken = localStorage.getItem('driveToken') || null; let tokenExpiry = localStorage.getItem('driveTokenExpiry') || null;
 
     function updateGymStreak(val) {
       gymStreak = val === 0 ? 0 : gymStreak + val;
+      localStorage.setItem('dh_gymStreak', gymStreak);
       document.getElementById('gym-streak-val').innerText = gymStreak;
-    }
-
-    // Updates UI based on if token exists and hasn't expired yet
-    function checkAuthStatus() {
-      const statusEl = document.getElementById('auth-status');
-      if (driveToken && tokenExpiry && Date.now() < tokenExpiry) {
-        statusEl.innerText = 'AUTHORIZED ✓';
-        statusEl.classList.replace('text-slate-500', 'text-green-600');
-        statusEl.classList.replace('border-slate-200', 'border-green-600');
-        return true;
-      } else {
-        statusEl.innerText = 'UNAUTHORIZED';
-        statusEl.classList.replace('text-green-600', 'text-slate-500');
-        statusEl.classList.replace('border-green-600', 'border-slate-200');
-        return false;
-      }
-    }
-
-    // Authorize or Renew Token silently
-    function authorizeGoogleDrive(silent = false, callback = null) {
-      const clientId = document.getElementById('setup-client-id').value;
-      if (!clientId) {
-        if (!silent) alert('Please enter your Google OAuth Client ID first.');
-        return;
-      }
-      
-      const tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: (tokenResponse) => {
-          if (tokenResponse && tokenResponse.access_token) {
-            driveToken = tokenResponse.access_token;
-            // Google tokens generally expire in 1 hour (3600 seconds)
-            tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000);
-            
-            // Save to browser memory
-            localStorage.setItem('driveToken', driveToken);
-            localStorage.setItem('driveTokenExpiry', tokenExpiry);
-            localStorage.setItem('hasAuthorizedDrive', 'true');
-            
-            checkAuthStatus();
-            if (!silent) alert('✅ API Authorized!');
-            if (callback) callback(driveToken);
-          }
-        },
-        error_callback: (err) => {
-          if (callback) callback(null);
-        }
-      });
-      
-      if (silent) {
-        // Skips the popup if the user is signed into Google and previously granted permission
-        tokenClient.requestAccessToken({prompt: ''});
-      } else {
-        // Forces the popup for initial setup
-        tokenClient.requestAccessToken({prompt: 'consent'});
-      }
-    }
-
-    // Wrap upload logic to ensure we always have a valid token without prompting
-    function getValidToken(callback) {
-      if (driveToken && tokenExpiry && Date.now() < tokenExpiry) {
-        callback(driveToken); // Token is still good
-      } else if (localStorage.getItem('hasAuthorizedDrive') === 'true') {
-        // Token expired, silently request a new one without a popup
-        authorizeGoogleDrive(true, callback);
-      } else {
-        // User has never authorized
-        callback(null);
-      }
-    }
-
-    async function handlePhotoUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const status = document.getElementById('upload-status');
-      const preview = document.getElementById('photo-preview-img');
-
-      // Attempt to get a valid token (using cached or silently fetching a new one)
-      getValidToken(async (token) => {
-        if (!token) {
-          alert('⚠️ Google Drive unauthorized or session expired. Saving photo locally for Photobook rendering. Please go to Setup tab to Authorize.');
-          photoPreviewBase64 = URL.createObjectURL(file);
-          preview.src = photoPreviewBase64;
-          preview.classList.remove('hidden');
-          return;
-        }
-
-        status.classList.remove('hidden');
-        document.getElementById('photo-upload').disabled = true;
-
-        const metadata = { name: `Discipline_Photo_${new Date().toISOString().split('T')[0]}_${file.name}`, mimeType: file.type };
-        const formData = new FormData();
-        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        formData.append('file', file);
-
-        try {
-          const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
-          });
-          if (res.ok) {
-            const data = await res.json();
-            photoPreviewBase64 = URL.createObjectURL(file); 
-            preview.src = photoPreviewBase64;
-            preview.classList.remove('hidden');
-            alert(`✅ Synced to Google Drive silently!\nFile ID: ${data.id}`);
-          } else throw new Error('Upload request failed.');
-        } catch (err) { 
-          alert('Sync failed.'); 
-        } finally {
-          status.classList.add('hidden');
-          document.getElementById('photo-upload').disabled = false;
-        }
-      });
+      triggerCloudSync();
     }
 
     function logWeight(e) {
@@ -624,32 +573,26 @@
       const weight = document.getElementById('weight-log-input').value;
       if(!weight) return;
       weightLogs.unshift({ id: Date.now(), date: new Date().toLocaleDateString(), weight, photo: photoPreviewBase64 });
-      
+      localStorage.setItem('dh_weightLogs', JSON.stringify(weightLogs));
       document.getElementById('weight-log-input').value = '';
       document.getElementById('photo-upload').value = '';
       document.getElementById('photo-preview-img').classList.add('hidden');
       photoPreviewBase64 = null;
-      renderPhotobook(); 
+      renderPhotobook(); triggerCloudSync();
     }
 
     function renderPhotobook() {
       const grid = document.getElementById('photobook-grid');
       const logsWithPhotos = weightLogs.filter(l => l.photo);
-      
       if (logsWithPhotos.length === 0) {
         grid.innerHTML = '<div class="col-span-full text-center p-10 bg-slate-100 border-4 border-dashed border-slate-300 rounded-3xl"><i data-lucide="image" class="w-12 h-12 text-slate-400 mx-auto mb-4"></i><p class="text-lg font-black uppercase tracking-widest text-slate-500">No photos logged. Discipline starts today.</p></div>';
-        lucide.createIcons();
-        return;
+        lucide.createIcons(); return;
       }
-      
       grid.innerHTML = logsWithPhotos.map(l => `
         <div class="relative group rounded-2xl overflow-hidden shadow-xl border-4 border-slate-900 bg-slate-900 aspect-[3/4]">
           <img src="${l.photo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100">
           <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 pt-12 flex justify-between items-end">
-            <div>
-              <div class="text-white font-black text-2xl tracking-tighter">${l.weight} <span class="text-sm text-red-500 font-bold uppercase">kg</span></div>
-              <div class="text-slate-400 text-xs font-black uppercase tracking-widest mt-1">${l.date}</div>
-            </div>
+            <div><div class="text-white font-black text-2xl tracking-tighter">${l.weight} <span class="text-sm text-red-500 font-bold uppercase">kg</span></div><div class="text-slate-400 text-xs font-black uppercase tracking-widest mt-1">${l.date}</div></div>
             <i data-lucide="activity" class="text-red-600 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></i>
           </div>
         </div>
@@ -659,37 +602,17 @@
 
     function calculateCalories(e) {
       e.preventDefault();
-      const age = Number(document.getElementById('cal-age').value);
-      const gender = document.getElementById('cal-gender').value;
-      const weight = Number(document.getElementById('cal-weight').value);
-      const height = Number(document.getElementById('cal-height').value);
-      const activity = Number(document.getElementById('cal-activity').value);
-
-      let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-      bmr += (gender === 'male') ? 5 : -161;
-      currentTdee = Math.round(bmr * activity);
+      const age = Number(document.getElementById('cal-age').value), gender = document.getElementById('cal-gender').value, weight = Number(document.getElementById('cal-weight').value), height = Number(document.getElementById('cal-height').value), activity = Number(document.getElementById('cal-activity').value);
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age); bmr += (gender === 'male') ? 5 : -161; currentTdee = Math.round(bmr * activity);
       renderCalorieResults(weight);
     }
-
-    function setCyclePhase(phase) {
-      currentCyclePhase = phase;
-      const weight = Number(document.getElementById('cal-weight').value) || 75;
-      if(currentTdee) renderCalorieResults(weight);
-    }
-
+    function setCyclePhase(phase) { currentCyclePhase = phase; const weight = Number(document.getElementById('cal-weight').value) || 75; if(currentTdee) renderCalorieResults(weight); }
     function renderCalorieResults(weight) {
-      const container = document.getElementById('calorie-results');
-      if (!currentTdee) return;
-      
-      let targetKcal = currentTdee;
-      let phaseText = "Energy balance maintained.";
+      const container = document.getElementById('calorie-results'); if (!currentTdee) return;
+      let targetKcal = currentTdee, phaseText = "Energy balance maintained.";
       if(currentCyclePhase === 'bulk') { targetKcal += 300; phaseText = "+300 kcal. Muscle accretion phase."; }
       if(currentCyclePhase === 'cut') { targetKcal -= 500; phaseText = "-500 kcal. Fat oxidation phase."; }
-
-      const pro = Math.round(weight * 2.2);
-      const fat = Math.round((targetKcal * 0.25) / 9);
-      const carb = Math.round((targetKcal - (pro * 4) - (fat * 9)) / 4);
-
+      const pro = Math.round(weight * 2.2), fat = Math.round((targetKcal * 0.25) / 9), carb = Math.round((targetKcal - (pro * 4) - (fat * 9)) / 4);
       container.innerHTML = `
         <div class="flex flex-col sm:flex-row bg-slate-800 p-2 rounded-xl w-full mb-6 gap-2">
           <button onclick="setCyclePhase('cut')" class="flex-1 text-xs font-black uppercase tracking-widest py-3 rounded-lg transition-all ${currentCyclePhase === 'cut' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}">Cut</button>
@@ -711,44 +634,27 @@
     }
 
     // --- Tab 4: Habit Tracker ---
-    let habits = [
-      { id: 1, name: 'NO PORN / NO MASTURBATION', daysClean: 12 },
-      { id: 2, name: 'NO CHEATING / FIDELITY', daysClean: 45 },
-      { id: 3, name: 'NO JUNK FOOD', daysClean: 5 }
+    let habits = JSON.parse(localStorage.getItem('dh_habits')) || [
+      { id: 1, name: 'NO PORN / MASTURBATION', daysClean: 12 }, { id: 2, name: 'FIDELITY', daysClean: 45 }, { id: 3, name: 'NO JUNK FOOD', daysClean: 5 }
     ];
     let resettingId = null;
 
-    function incrementHabit(id) {
-      const h = habits.find(h => h.id === id);
-      if(h) h.daysClean++;
-      renderHabits();
-    }
-
+    function incrementHabit(id) { const h = habits.find(h => h.id === id); if(h) { h.daysClean++; localStorage.setItem('dh_habits', JSON.stringify(habits)); renderHabits(); triggerCloudSync(); } }
     function startResetHabit(id) { resettingId = id; renderHabits(); }
     function cancelResetHabit() { resettingId = null; renderHabits(); }
-    function confirmResetHabit(id) {
-      const h = habits.find(h => h.id === id);
-      if(h) h.daysClean = 0;
-      resettingId = null;
-      renderHabits();
-    }
+    function confirmResetHabit(id) { const h = habits.find(h => h.id === id); if(h) { h.daysClean = 0; localStorage.setItem('dh_habits', JSON.stringify(habits)); triggerCloudSync(); } resettingId = null; renderHabits(); }
 
     function renderHabits() {
       const container = document.getElementById('habits-container');
       container.innerHTML = habits.map(h => {
         const progress = Math.min((h.daysClean / 90) * 100, 100);
-        let buttons = '';
-        if(resettingId === h.id) {
-          buttons = `
+        let buttons = resettingId === h.id ? `
             <button onclick="confirmResetHabit(${h.id})" class="flex-1 bg-red-600 text-white py-4 rounded-xl text-sm font-black uppercase tracking-wider hover:bg-red-700 transition">Execute</button>
             <button onclick="cancelResetHabit()" class="flex-1 bg-slate-200 text-slate-800 py-4 rounded-xl text-sm font-black uppercase tracking-wider hover:bg-slate-300 transition">Abort</button>
-          `;
-        } else {
-          buttons = `
+          ` : `
             <button onclick="incrementHabit(${h.id})" class="flex-1 bg-slate-900 text-white py-4 rounded-xl text-sm font-black uppercase tracking-wider hover:bg-slate-800 transition">+1 Day</button>
             <button onclick="startResetHabit(${h.id})" class="bg-slate-200 text-slate-600 py-4 px-5 rounded-xl text-sm hover:bg-red-600 hover:text-white transition"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
           `;
-        }
         return `
           <div class="bg-white border-4 border-slate-900 rounded-2xl p-6 md:p-8 flex flex-col items-center text-center shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] relative overflow-hidden">
             <div class="absolute top-0 left-0 h-2 bg-red-600 transition-all duration-1000" style="width: ${progress}%"></div>
@@ -763,325 +669,149 @@
     }
 
     // --- Tab 5: Screen Time ---
-    let screenUsed = 0;
-    const screenBudget = 120;
-    
-    function updateScreenTime(mins) {
-      screenUsed += mins;
-      renderScreenTime();
-    }
-    
-    function resetScreenTime() { screenUsed = 0; renderScreenTime(); }
-
+    let screenUsed = localStorage.getItem('dh_screenUsed') !== null ? parseInt(localStorage.getItem('dh_screenUsed')) : 0; const screenBudget = 120;
+    function updateScreenTime(mins) { screenUsed += mins; localStorage.setItem('dh_screenUsed', screenUsed); renderScreenTime(); triggerCloudSync(); }
+    function resetScreenTime() { screenUsed = 0; localStorage.setItem('dh_screenUsed', screenUsed); renderScreenTime(); triggerCloudSync(); }
     function renderScreenTime() {
       document.getElementById('screen-used-label').innerText = `USED: ${screenUsed} MIN`;
       const pct = Math.min((screenUsed / screenBudget) * 100, 100);
       const bar = document.getElementById('screen-progress');
-      bar.style.width = `${pct}%`;
-      bar.className = 'h-full transition-all duration-500 ' + (pct >= 100 ? 'bg-red-600' : pct > 75 ? 'bg-amber-500' : 'bg-slate-900');
+      bar.style.width = `${pct}%`; bar.className = 'h-full transition-all duration-500 ' + (pct >= 100 ? 'bg-red-600' : pct > 75 ? 'bg-amber-500' : 'bg-slate-900');
     }
 
     // --- Tab 6: Budget & Finance ---
-    let transactions = [
-      { id: 1, amount: 15000, desc: 'Index Fund SIP', type: 'investment', date: new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString() },
-      { id: 2, amount: 20000, desc: 'Rent & Bills', type: 'expense', date: new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString() },
-      { id: 3, amount: 18000, desc: 'Stocks', type: 'investment', date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString() },
-    ];
-    let monthlyBudgetVal = 50000;
+    let transactions = JSON.parse(localStorage.getItem('dh_transactions')) || [];
+    let monthlyBudgetVal = localStorage.getItem('dh_monthlyBudget') !== null ? parseInt(localStorage.getItem('dh_monthlyBudget')) : 50000;
 
-    function updateBudget() {
-      monthlyBudgetVal = Number(document.getElementById('monthly-budget-input').value) || 0;
-      renderBudget();
-    }
-
-    function toggleBudgetReset() {
-      document.getElementById('budget-reset-btn').classList.add('hidden');
-      document.getElementById('budget-reset-confirm').classList.remove('hidden');
-      document.getElementById('budget-reset-confirm').classList.add('flex');
-    }
-
+    function updateBudget() { monthlyBudgetVal = Number(document.getElementById('monthly-budget-input').value) || 0; localStorage.setItem('dh_monthlyBudget', monthlyBudgetVal); renderBudget(); triggerCloudSync(); }
+    function toggleBudgetReset() { document.getElementById('budget-reset-btn').classList.add('hidden'); document.getElementById('budget-reset-confirm').classList.remove('hidden'); document.getElementById('budget-reset-confirm').classList.add('flex'); }
     function confirmResetBudget(confirm) {
-      if(confirm) transactions = [];
-      document.getElementById('budget-reset-btn').classList.remove('hidden');
-      document.getElementById('budget-reset-confirm').classList.add('hidden');
-      document.getElementById('budget-reset-confirm').classList.remove('flex');
+      if(confirm) { transactions = []; localStorage.setItem('dh_transactions', JSON.stringify(transactions)); triggerCloudSync(); }
+      document.getElementById('budget-reset-btn').classList.remove('hidden'); document.getElementById('budget-reset-confirm').classList.add('hidden'); document.getElementById('budget-reset-confirm').classList.remove('flex');
       renderBudget();
     }
-
     function addTransaction(e) {
       e.preventDefault();
-      const amount = document.getElementById('tx-amount').value;
-      const desc = document.getElementById('tx-desc').value;
-      const type = document.getElementById('tx-type').value;
-      
-      transactions.unshift({ id: Date.now(), amount: parseFloat(amount), desc, type, date: new Date().toISOString() });
-      document.getElementById('tx-amount').value = '';
-      document.getElementById('tx-desc').value = '';
-      renderBudget();
+      transactions.unshift({ id: Date.now(), amount: parseFloat(document.getElementById('tx-amount').value), desc: document.getElementById('tx-desc').value, type: document.getElementById('tx-type').value, date: new Date().toISOString() });
+      localStorage.setItem('dh_transactions', JSON.stringify(transactions));
+      document.getElementById('tx-amount').value = ''; document.getElementById('tx-desc').value = ''; renderBudget(); triggerCloudSync();
     }
-
-    function removeTx(id) { transactions = transactions.filter(t => t.id !== id); renderBudget(); }
+    function removeTx(id) { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('dh_transactions', JSON.stringify(transactions)); renderBudget(); triggerCloudSync(); }
 
     function renderBudget() {
-      const d = new Date();
-      const currentMonthStr = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+      document.getElementById('monthly-budget-input').value = monthlyBudgetVal;
+      const currentMonthStr = new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
       document.getElementById('current-month-title').innerText = `Current Month (${currentMonthStr.toUpperCase()})`;
 
       const monthlyData = transactions.reduce((acc, t) => {
         const mY = new Date(t.date).toLocaleString('default', { month: 'short', year: 'numeric' });
         if (!acc[mY]) acc[mY] = { label: mY, invested: 0, spent: 0, ts: new Date(t.date).getTime() };
-        if (t.type === 'investment') acc[mY].invested += t.amount; else acc[mY].spent += t.amount;
-        return acc;
+        if (t.type === 'investment') acc[mY].invested += t.amount; else acc[mY].spent += t.amount; return acc;
       }, {});
 
       const sortedMonths = Object.values(monthlyData).sort((a, b) => a.ts - b.ts);
       const curData = monthlyData[currentMonthStr] || { invested: 0, spent: 0 };
-      const netUsed = curData.invested + curData.spent;
-      const remaining = monthlyBudgetVal - netUsed;
-      const pInv = monthlyBudgetVal > 0 ? ((curData.invested / monthlyBudgetVal) * 100).toFixed(1) : 0;
-      const pSpn = monthlyBudgetVal > 0 ? ((curData.spent / monthlyBudgetVal) * 100).toFixed(1) : 0;
+      const netUsed = curData.invested + curData.spent, remaining = monthlyBudgetVal - netUsed;
+      const pInv = monthlyBudgetVal > 0 ? ((curData.invested / monthlyBudgetVal) * 100).toFixed(1) : 0, pSpn = monthlyBudgetVal > 0 ? ((curData.spent / monthlyBudgetVal) * 100).toFixed(1) : 0;
 
       document.getElementById('budget-dashboard').innerHTML = `
-        <div class="bg-slate-900 p-4 rounded-xl border-4 border-slate-800 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1">
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Invested</span>
-          <span class="text-xl font-black text-white mt-1">₹${curData.invested.toFixed(0)}</span>
-          <span class="text-[10px] text-slate-900 font-black mt-2 bg-white px-3 py-1 rounded-full uppercase tracking-wider">${pInv}%</span>
-        </div>
-        <div class="bg-red-50 p-4 rounded-xl border-4 border-red-200 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1">
-          <span class="text-[10px] font-black text-red-600 uppercase tracking-widest">Spent</span>
-          <span class="text-xl font-black text-red-900 mt-1">₹${curData.spent.toFixed(0)}</span>
-          <span class="text-[10px] text-red-900 font-black mt-2 bg-red-200 px-3 py-1 rounded-full uppercase tracking-wider">${pSpn}%</span>
-        </div>
-        <div class="bg-slate-100 p-4 rounded-xl border-4 border-slate-300 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-2">
-          <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Remaining Reserve</span>
-          <span class="text-3xl font-black mt-1 ${remaining < 0 ? 'text-red-600' : 'text-slate-900'}">₹${remaining.toFixed(0)}</span>
-          <div class="w-full bg-slate-300 h-2 rounded-full mt-3 overflow-hidden">
-             <div class="bg-slate-900 h-full" style="width: ${Math.min((netUsed / monthlyBudgetVal) * 100, 100)}%"></div>
-          </div>
-        </div>
+        <div class="bg-slate-900 p-4 rounded-xl border-4 border-slate-800 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1"><span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Invested</span><span class="text-xl font-black text-white mt-1">₹${curData.invested.toFixed(0)}</span><span class="text-[10px] text-slate-900 font-black mt-2 bg-white px-3 py-1 rounded-full uppercase tracking-wider">${pInv}%</span></div>
+        <div class="bg-red-50 p-4 rounded-xl border-4 border-red-200 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1"><span class="text-[10px] font-black text-red-600 uppercase tracking-widest">Spent</span><span class="text-xl font-black text-red-900 mt-1">₹${curData.spent.toFixed(0)}</span><span class="text-[10px] text-red-900 font-black mt-2 bg-red-200 px-3 py-1 rounded-full uppercase tracking-wider">${pSpn}%</span></div>
+        <div class="bg-slate-100 p-4 rounded-xl border-4 border-slate-300 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-2"><span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Remaining</span><span class="text-3xl font-black mt-1 ${remaining < 0 ? 'text-red-600' : 'text-slate-900'}">₹${remaining.toFixed(0)}</span><div class="w-full bg-slate-300 h-2 rounded-full mt-3 overflow-hidden"><div class="bg-slate-900 h-full" style="width: ${Math.min((netUsed / monthlyBudgetVal) * 100, 100)}%"></div></div></div>
       `;
 
       const list = document.getElementById('tx-list');
       if (transactions.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-4 bg-white rounded-xl text-center">No ledger entries.</p>';
-      else list.innerHTML = transactions.map(t => `
-        <li class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white rounded-xl border-2 border-slate-200 gap-3">
-          <div class="flex flex-col"><span class="text-sm font-black uppercase tracking-tight text-slate-900">${t.desc}</span><span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">${new Date(t.date).toLocaleDateString()}</span></div>
-          <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t-2 sm:border-t-0 border-slate-100 pt-3 sm:pt-0">
-            <span class="font-mono font-black text-lg ${t.type === 'investment' ? 'text-slate-900' : 'text-red-600'}">${t.type === 'investment' ? '+' : '-'}₹${t.amount.toFixed(2)}</span>
-            <button onclick="removeTx(${t.id})" class="text-slate-400 hover:text-red-600 bg-slate-50 p-2 rounded-lg hover:bg-red-50"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          </div>
-        </li>
-      `).join('');
+      else list.innerHTML = transactions.map(t => `<li class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white rounded-xl border-2 border-slate-200 gap-3"><div class="flex flex-col"><span class="text-sm font-black uppercase tracking-tight text-slate-900">${t.desc}</span><span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">${new Date(t.date).toLocaleDateString()}</span></div><div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t-2 sm:border-t-0 border-slate-100 pt-3 sm:pt-0"><span class="font-mono font-black text-lg ${t.type === 'investment' ? 'text-slate-900' : 'text-red-600'}">${t.type === 'investment' ? '+' : '-'}₹${t.amount.toFixed(2)}</span><button onclick="removeTx(${t.id})" class="text-slate-400 hover:text-red-600 bg-slate-50 p-2 rounded-lg hover:bg-red-50"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></li>`).join('');
 
       const chart = document.getElementById('chart-container');
       const maxInv = Math.max(...sortedMonths.map(m => m.invested), 1);
       if (sortedMonths.length === 0) chart.innerHTML = '<p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-auto">No data.</p>';
-      else chart.innerHTML = sortedMonths.map(m => `
-        <div class="flex flex-col items-center flex-1 group relative">
-          <div class="absolute -top-10 bg-slate-900 text-white font-black text-[10px] py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">₹${m.invested.toLocaleString()}</div>
-          <div class="w-full bg-slate-800 rounded-t-sm hover:bg-red-600 transition-colors" style="height: ${Math.max((m.invested / maxInv) * 100, 5)}%"></div>
-          <div class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-2 truncate w-full text-center">${m.label.split(' ')[0]}</div>
-        </div>
-      `).join('');
-
+      else chart.innerHTML = sortedMonths.map(m => `<div class="flex flex-col items-center flex-1 group relative"><div class="absolute -top-10 bg-slate-900 text-white font-black text-[10px] py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">₹${m.invested.toLocaleString()}</div><div class="w-full bg-slate-800 rounded-t-sm hover:bg-red-600 transition-colors" style="height: ${Math.max((m.invested / maxInv) * 100, 5)}%"></div><div class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-2 truncate w-full text-center">${m.label.split(' ')[0]}</div></div>`).join('');
       lucide.createIcons();
     }
 
-    // --- Tab 7: Geeta Gyan ---
-    const verses = [
-      { ch: 2, v: 47, s: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।", t: "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions.", a: "Focus purely on the process and detach yourself from the immediate outcome. Anxiety comes from outcome-dependency." },
-      { ch: 6, v: 6, s: "बन्धुरात्मात्मनस्तस्य येनात्मैवात्मना जितः।", t: "For him who has conquered the mind, the mind is the best of friends; but for one who has failed to do so, his mind will remain the greatest enemy.", a: "Discipline is not punishment; it is the taming of your greatest tool." },
-      { ch: 3, v: 8, s: "नियतं कुरु कर्म त्वं कर्म ज्यायो ह्यकर्मणः।", t: "Perform your obligatory duty, because action is indeed better than inaction.", a: "Action cures fear. Take the smallest possible positive action immediately rather than waiting for motivation." }
-    ];
-    let currentVerse = verses[0];
+    // --- Tab 8: Study Logger ---
+    let studyLogs = JSON.parse(localStorage.getItem('dh_studyLogs')) || [];
 
-    function seekGuidance() {
-      currentVerse = verses[Math.floor(Math.random() * verses.length)];
-      renderWisdom();
-    }
-
-    function renderWisdom() {
-      document.getElementById('wisdom-content').innerHTML = `
-        <h3 class="text-sm font-black uppercase tracking-widest text-red-500 border-b-2 border-slate-700 inline-block pb-1">Chapter ${currentVerse.ch}, Verse ${currentVerse.v}</h3>
-        <p class="text-2xl md:text-3xl font-black text-white leading-tight font-serif italic tracking-tight">"${currentVerse.t}"</p>
-        <div class="w-24 h-2 bg-red-600 mx-auto my-6 rounded-full"></div>
-        <div class="text-sm text-slate-300 text-left bg-slate-800 p-6 md:p-8 rounded-2xl border-2 border-slate-700 shadow-inner">
-          <strong class="text-red-500 block mb-3 font-black uppercase tracking-widest">Tactical Execution:</strong> 
-          <span class="font-bold leading-relaxed">${currentVerse.a}</span>
-        </div>
-      `;
-    }
-
-    // --- Tab 8: Global Setup ---
-    function loadSettings() {
-      document.getElementById('setup-client-id').value = localStorage.getItem('clientId') || '';
-      document.getElementById('setup-drive').value = localStorage.getItem('driveLink') || '';
-      updateDriveLinkBtn();
-      checkAuthStatus(); // Checks local storage and updates UI to 'Authorized' if token hasn't expired
-    }
-
-    function saveSettings() {
-      const drive = document.getElementById('setup-drive').value;
-      localStorage.setItem('clientId', document.getElementById('setup-client-id').value);
-      localStorage.setItem('driveLink', drive);
-      updateDriveLinkBtn();
-    }
-
-    function updateDriveLinkBtn() {
-      const btn = document.getElementById('drive-link-btn');
-      const val = document.getElementById('setup-drive').value;
-      if(val) { btn.href = val; btn.classList.remove('hidden'); } 
-      else { btn.classList.add('hidden'); }
-    }
-
-    // --- Initialization ---
-    renderTasks();
-    renderTodos();
-    renderPhotobook();
-    renderHabits();
-    renderScreenTime();
-    renderBudget();
-    renderWisdom();
-    loadSettings();
-
-  </script>
-
-  <!-- Firebase Cloud Sync Module for Study Logs -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    let studyLogs = [];
-    let db, auth, currentUser, appId;
-    let unsubscribeLogs = null;
-
-    const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-    
-    if (configStr) {
-        const firebaseConfig = JSON.parse(configStr);
-        const app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        appId = typeof __app_id !== 'undefined' ? __app_id : 'discipline-hub';
-
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch(e) { console.error("Auth Error", e); }
-        };
-        initAuth();
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const statusEl = document.getElementById('sync-status');
-            
-            if (user) {
-                if(statusEl) {
-                    statusEl.innerText = "CLOUD SYNC: ACTIVE";
-                    statusEl.className = "text-xs font-black uppercase tracking-wider text-green-600 mt-2";
-                }
-                
-                const logsRef = collection(db, 'artifacts', appId, 'users', user.uid, 'studyLogs');
-                if (unsubscribeLogs) unsubscribeLogs();
-                
-                unsubscribeLogs = onSnapshot(logsRef, (snapshot) => {
-                    studyLogs = [];
-                    snapshot.forEach(document => {
-                        studyLogs.push({ id: document.id, ...document.data() });
-                    });
-                    studyLogs.sort((a, b) => b.timestamp - a.timestamp); 
-                    if(window.renderStudyLogs) window.renderStudyLogs();
-                }, (error) => {
-                    console.error("Sync error:", error);
-                });
-            }
-        });
-    } else {
-        const statusEl = document.getElementById('sync-status');
-        if(statusEl) {
-            statusEl.innerText = "CLOUD SYNC: OFFLINE (NO CONFIG DETECTED)";
-            statusEl.className = "text-xs font-black uppercase tracking-wider text-red-600 mt-2";
-        }
-    }
-
-    // Attach to window so the vanilla JS onclick handlers can access the module
-    window.addStudyLog = async function(e) {
+    function addStudyLog(e) {
         e.preventDefault();
         const topic = document.getElementById('study-topic').value;
         const duration = parseInt(document.getElementById('study-duration').value);
         const notes = document.getElementById('study-notes').value;
-        
         if (!topic || !duration) return;
-
-        const logData = {
-            topic,
-            duration,
-            notes,
-            timestamp: Date.now(),
-            dateStr: new Date().toLocaleDateString()
-        };
-
-        if (db && currentUser) {
-            const logsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'studyLogs');
-            await addDoc(logsRef, logData);
-        } else {
-            // Offline fallback
-            studyLogs.unshift({ id: Date.now().toString(), ...logData });
-            window.renderStudyLogs();
-        }
-
+        
+        studyLogs.unshift({ id: Date.now().toString(), topic, duration, notes, timestamp: Date.now(), dateStr: new Date().toLocaleDateString() });
+        localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs));
+        
         document.getElementById('study-topic').value = '';
         document.getElementById('study-duration').value = '';
         document.getElementById('study-notes').value = '';
-    };
+        renderStudyLogs(); triggerCloudSync();
+    }
 
-    window.deleteStudyLog = async function(id) {
-        if (db && currentUser) {
-            await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'studyLogs', id));
-        } else {
-            studyLogs = studyLogs.filter(l => l.id !== id);
-            window.renderStudyLogs();
-        }
-    };
+    function deleteStudyLog(id) {
+        studyLogs = studyLogs.filter(l => l.id !== id);
+        localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs));
+        renderStudyLogs(); triggerCloudSync();
+    }
 
-    window.renderStudyLogs = function() {
+    function renderStudyLogs() {
         const list = document.getElementById('study-list');
-        if (!list) return;
-        
-        if (studyLogs.length === 0) {
-            list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-6 bg-slate-100 rounded-xl text-center border-2 border-dashed border-slate-300">No logs yet. Start learning.</p>';
-        } else {
-            list.innerHTML = studyLogs.map(l => `
-                <div class="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-slate-400">
-                    <div class="flex flex-col">
-                        <h4 class="font-black uppercase tracking-tight text-slate-900 text-lg">${l.topic}</h4>
-                        ${l.notes ? `<p class="text-sm font-bold text-slate-600 mt-2 bg-slate-50 p-4 rounded-xl border-l-4 border-slate-900 shadow-inner">${l.notes}</p>` : ''}
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-3">${l.dateStr}</span>
-                    </div>
-                    <div class="flex items-center gap-4 border-t-2 sm:border-t-0 border-slate-100 pt-4 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                        <span class="font-black text-2xl text-slate-900">${l.duration} <span class="text-xs text-red-600 uppercase tracking-widest">min</span></span>
-                        <button onclick="deleteStudyLog('${l.id}')" class="bg-slate-100 p-3 rounded-xl text-slate-400 hover:text-white hover:bg-red-600 transition-colors shadow-sm"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        if (window.lucide) window.lucide.createIcons();
-        
-        // Update aggregate times
+        if (studyLogs.length === 0) list.innerHTML = '<p class="text-sm font-bold uppercase tracking-wider text-slate-400 p-6 bg-slate-100 rounded-xl text-center border-2 border-dashed border-slate-300">No logs yet. Start learning.</p>';
+        else list.innerHTML = studyLogs.map(l => `
+            <div class="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-slate-400">
+                <div class="flex flex-col"><h4 class="font-black uppercase tracking-tight text-slate-900 text-lg">${l.topic}</h4>${l.notes ? `<p class="text-sm font-bold text-slate-600 mt-2 bg-slate-50 p-4 rounded-xl border-l-4 border-slate-900 shadow-inner">${l.notes}</p>` : ''}<span class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-3">${l.dateStr}</span></div>
+                <div class="flex items-center gap-4 border-t-2 sm:border-t-0 border-slate-100 pt-4 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end shrink-0"><span class="font-black text-2xl text-slate-900">${l.duration} <span class="text-xs text-red-600 uppercase tracking-widest">min</span></span><button onclick="deleteStudyLog('${l.id}')" class="bg-slate-100 p-3 rounded-xl text-slate-400 hover:text-white hover:bg-red-600 transition-colors shadow-sm"><i data-lucide="trash-2" class="w-5 h-5"></i></button></div>
+            </div>`).join('');
+        lucide.createIcons();
         const today = new Date().toLocaleDateString();
         const totalToday = studyLogs.filter(l => l.dateStr === today).reduce((sum, l) => sum + l.duration, 0);
-        const totalTodayEl = document.getElementById('study-total-today');
-        if (totalTodayEl) totalTodayEl.innerText = totalToday;
-    };
+        document.getElementById('study-total-today').innerText = totalToday;
+    }
 
-    // Initial render for offline use
-    window.renderStudyLogs(); 
+    // --- Geeta Gyan ---
+    const verses = [ { ch: 2, v: 47, t: "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions.", a: "Focus purely on the process. Anxiety comes from outcome-dependency." }, { ch: 6, v: 6, t: "For him who has conquered the mind, the mind is the best of friends; but for one who has failed to do so, his mind will remain the greatest enemy.", a: "Discipline is not punishment; it is the taming of your greatest tool." }, { ch: 3, v: 8, t: "Perform your obligatory duty, because action is indeed better than inaction.", a: "Action cures fear. Take the smallest possible positive action immediately." } ];
+    function renderWisdom() { const v = verses[Math.floor(Math.random() * verses.length)]; document.getElementById('wisdom-content').innerHTML = `<h3 class="text-sm font-black uppercase tracking-widest text-red-500 border-b-2 border-slate-700 inline-block pb-1">Chapter ${v.ch}, Verse ${v.v}</h3><p class="text-2xl md:text-3xl font-black text-white leading-tight font-serif italic tracking-tight">"${v.t}"</p><div class="w-24 h-2 bg-red-600 mx-auto my-6 rounded-full"></div><div class="text-sm text-slate-300 text-left bg-slate-800 p-6 md:p-8 rounded-2xl border-2 border-slate-700 shadow-inner"><strong class="text-red-500 block mb-3 font-black uppercase tracking-widest">Tactical Execution:</strong> <span class="font-bold leading-relaxed">${v.a}</span></div>`; }
+    function seekGuidance() { renderWisdom(); }
+
+    // --- Init & Setup ---
+    function renderAll() {
+        renderTasks(); renderTodos(); renderPhotobook(); renderHabits(); 
+        renderScreenTime(); renderBudget(); renderStudyLogs();
+        document.getElementById('gym-streak-val').innerText = gymStreak;
+    }
+
+    function loadSettings() {
+      document.getElementById('setup-apps-script').value = localStorage.getItem('dh_appsScriptUrl') || '';
+      document.getElementById('setup-client-id').value = localStorage.getItem('clientId') || '';
+      document.getElementById('setup-drive').value = localStorage.getItem('driveLink') || '';
+      updateDriveLinkBtn(); checkAuthStatus(); renderAll(); renderWisdom();
+      
+      if(document.getElementById('setup-apps-script').value) {
+          pullFromCloud(); // Pull immediately on load if URL exists
+      }
+    }
+    
+    function saveSettings() {
+      localStorage.setItem('dh_appsScriptUrl', document.getElementById('setup-apps-script').value);
+      localStorage.setItem('clientId', document.getElementById('setup-client-id').value);
+      localStorage.setItem('driveLink', document.getElementById('setup-drive').value);
+      updateDriveLinkBtn(); triggerCloudSync();
+    }
+
+    function updateDriveLinkBtn() {
+      const btn = document.getElementById('drive-link-btn'), val = document.getElementById('setup-drive').value;
+      if(val) { btn.href = val; btn.classList.remove('hidden'); } else btn.classList.add('hidden');
+    }
+
+    loadSettings();
+
+    // Drive Upload Logic (Kept intact from previous iteration)
+    function checkAuthStatus() { const statusEl = document.getElementById('auth-status'); if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { statusEl.innerText = 'AUTHORIZED ✓'; statusEl.classList.replace('text-slate-500', 'text-green-600'); statusEl.classList.replace('border-slate-200', 'border-green-600'); return true; } else { statusEl.innerText = 'UNAUTHORIZED'; return false; } }
+    function authorizeGoogleDrive(silent = false, callback = null) { const clientId = document.getElementById('setup-client-id').value; if (!clientId) { if (!silent) alert('Please enter your Google OAuth Client ID first.'); return; } const tokenClient = google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: 'https://www.googleapis.com/auth/drive.file', callback: (tokenResponse) => { if (tokenResponse && tokenResponse.access_token) { driveToken = tokenResponse.access_token; tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000); localStorage.setItem('driveToken', driveToken); localStorage.setItem('driveTokenExpiry', tokenExpiry); localStorage.setItem('hasAuthorizedDrive', 'true'); checkAuthStatus(); if (!silent) alert('✅ API Authorized!'); if (callback) callback(driveToken); } }, error_callback: (err) => { if (callback) callback(null); } }); if (silent) { tokenClient.requestAccessToken({prompt: ''}); } else { tokenClient.requestAccessToken({prompt: 'consent'}); } }
+    function getValidToken(callback) { if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { callback(driveToken); } else if (localStorage.getItem('hasAuthorizedDrive') === 'true') { authorizeGoogleDrive(true, callback); } else { callback(null); } }
+    async function handlePhotoUpload(e) { const file = e.target.files[0]; if (!file) return; const status = document.getElementById('upload-status'), preview = document.getElementById('photo-preview-img'); getValidToken(async (token) => { if (!token) { alert('⚠️ Google Drive unauthorized. Saving locally.'); const r = new FileReader(); r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; r.readAsDataURL(file); return; } status.classList.remove('hidden'); document.getElementById('photo-upload').disabled = true; const metadata = { name: `Discipline_Photo_${new Date().toISOString().split('T')[0]}_${file.name}`, mimeType: file.type }; const formData = new FormData(); formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' })); formData.append('file', file); try { const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData }); if (res.ok) { const data = await res.json(); const r = new FileReader(); r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; r.readAsDataURL(file); alert(`✅ Synced to Google Drive! File ID: ${data.id}`); } else throw new Error('Upload failed.'); } catch (err) { alert('Sync failed.'); } finally { status.classList.add('hidden'); document.getElementById('photo-upload').disabled = false; } }); }
   </script>
 </body>
 </html>
