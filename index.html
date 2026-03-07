@@ -107,23 +107,44 @@
           </div>
         </div>
 
-        <!-- Log Weight Form -->
+        <!-- Log Weight Form with Circumference Measurements -->
         <div>
           <h2 class="text-2xl font-black uppercase tracking-tight mb-6 flex items-center gap-3 border-b-4 border-slate-900 pb-2"><i data-lucide="scale" class="text-slate-900 w-8 h-8"></i> Daily Metrics</h2>
           <div class="bg-slate-50 p-6 md:p-8 rounded-2xl border-2 border-slate-200 shadow-sm">
-            <form onsubmit="logWeight(event)" class="flex flex-col md:flex-row gap-6 items-end">
-              <div class="w-full md:w-1/3">
-                <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Weight (kg)</label>
-                <input type="number" step="0.1" id="weight-log-input" class="w-full p-4 border-2 border-slate-300 rounded-xl font-bold text-lg focus:border-slate-900 outline-none transition-colors" placeholder="e.g. 75.5" required>
+            <form onsubmit="logWeight(event)" class="flex flex-col gap-6">
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div class="col-span-2 md:col-span-1">
+                  <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Weight (kg)</label>
+                  <input type="number" step="0.1" id="weight-log-input" class="w-full p-4 border-2 border-slate-300 rounded-xl font-bold text-lg focus:border-slate-900 outline-none transition-colors" placeholder="e.g. 75.5" required>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-2">Waist (cm)</label>
+                  <input type="number" step="0.1" id="log-waist" class="w-full p-4 border-2 border-slate-300 rounded-xl font-bold text-sm focus:border-slate-900 outline-none transition-colors" placeholder="cm">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-2">Neck (cm)</label>
+                  <input type="number" step="0.1" id="log-neck" class="w-full p-4 border-2 border-slate-300 rounded-xl font-bold text-sm focus:border-slate-900 outline-none transition-colors" placeholder="cm">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-2">Chest (cm)</label>
+                  <input type="number" step="0.1" id="log-chest" class="w-full p-4 border-2 border-slate-300 rounded-xl font-bold text-sm focus:border-slate-900 outline-none transition-colors" placeholder="cm">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-2">Bicep (cm)</label>
+                  <input type="number" step="0.1" id="log-bicep" class="w-full p-4 border-2 border-slate-300 rounded-xl font-bold text-sm focus:border-slate-900 outline-none transition-colors" placeholder="cm">
+                </div>
               </div>
-              <div class="w-full md:w-1/3">
-                <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Progress Picture</label>
-                <input type="file" accept="image/*" id="photo-upload" onchange="handlePhotoUpload(event)" class="w-full text-sm font-bold text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-black file:uppercase file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer transition-colors">
-                <p id="upload-status" class="text-xs font-bold text-red-600 mt-2 animate-pulse hidden uppercase tracking-wider">Securely Uploading...</p>
+              <div class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="w-full md:w-2/3">
+                  <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Progress Picture</label>
+                  <input type="file" accept="image/*" id="photo-upload" onchange="handlePhotoUpload(event)" class="w-full text-sm font-bold text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-black file:uppercase file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer transition-colors">
+                  <p id="upload-status" class="text-xs font-bold text-red-600 mt-2 animate-pulse hidden uppercase tracking-wider">Securely Uploading...</p>
+                </div>
+                <div class="w-full md:w-1/3">
+                  <button type="submit" class="w-full bg-slate-900 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-red-600 transition-colors shadow-lg">Save Metric</button>
+                </div>
               </div>
-              <div class="w-full md:w-1/3">
-                <button type="submit" class="w-full bg-slate-900 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-red-600 transition-colors shadow-lg">Save Metric</button>
-              </div>
+              <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-2">Source: Dept. of Defense Body Composition (Waist & Neck metrics for body fat % estimation).</p>
             </form>
             <img id="photo-preview-img" class="w-full md:w-64 h-64 object-cover rounded-xl border-4 border-slate-900 mt-6 hidden mx-auto md:mx-0">
           </div>
@@ -146,6 +167,7 @@
             <div id="calorie-results" class="bg-slate-900 rounded-2xl p-8 border-4 border-slate-800 flex flex-col justify-center items-center text-center text-white">
                <p class="text-slate-400 my-auto font-bold uppercase tracking-widest">Awaiting Metrics...</p>
             </div>
+            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider col-span-1 lg:col-span-2 mt-[-10px]">Reference: Mifflin-St Jeor equation (Mifflin et al., 1990).</p>
           </div>
         </div>
 
@@ -166,7 +188,7 @@
       <!-- TAB 3: PHOTOBOOK -->
       <div id="tab-photobook" class="tab-content hidden space-y-8">
         <h2 class="text-2xl font-black uppercase tracking-tight mb-6 flex items-center gap-3 border-b-4 border-slate-900 pb-2"><i data-lucide="image" class="text-slate-900 w-8 h-8"></i> Progress Gallery</h2>
-        <div id="photobook-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
+        <div id="photobook-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           <!-- Populated by JS -->
         </div>
       </div>
@@ -177,7 +199,14 @@
           <h2 class="text-2xl font-black uppercase tracking-tight flex items-center gap-3 text-slate-900"><i data-lucide="shield-alert" class="text-red-600 w-8 h-8"></i> Addiction Override</h2>
           <p class="text-sm font-bold uppercase tracking-wider text-slate-500 mt-2">Dopamine detox. Track the days clean.</p>
         </div>
+        
+        <form onsubmit="addHabit(event)" class="flex flex-col sm:flex-row gap-3 mb-6">
+          <input type="text" id="new-habit-name" placeholder="Name of habit to break..." class="flex-1 w-full p-4 border-2 border-slate-300 rounded-xl font-bold focus:border-slate-900 outline-none transition-colors" required>
+          <button type="submit" class="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg">Add Tracker</button>
+        </form>
+
         <div id="habits-container" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+        
         <div class="mt-12 bg-slate-900 p-8 rounded-2xl text-white">
           <h4 class="font-black uppercase tracking-widest text-red-500 mb-4">Psychology of Overcoming:</h4>
           <ul class="space-y-4 text-sm font-bold text-slate-300">
@@ -400,9 +429,9 @@
             };
             
             try {
-                // Sending POST as plain text to avoid CORS preflight issues with GAS
                 await fetch(url, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
                     body: JSON.stringify({ action: 'sync', data: payload })
                 });
@@ -418,7 +447,7 @@
                     syncStatus.className = "text-xs font-black uppercase tracking-wider text-red-600 mt-2";
                 }
             }
-        }, 1500); // Debounce to prevent spamming GAS API
+        }, 1500); 
     }
 
     async function pullFromCloud() {
@@ -571,10 +600,26 @@
     function logWeight(e) {
       e.preventDefault();
       const weight = document.getElementById('weight-log-input').value;
+      const waist = document.getElementById('log-waist').value;
+      const neck = document.getElementById('log-neck').value;
+      const chest = document.getElementById('log-chest').value;
+      const bicep = document.getElementById('log-bicep').value;
+
       if(!weight) return;
-      weightLogs.unshift({ id: Date.now(), date: new Date().toLocaleDateString(), weight, photo: photoPreviewBase64 });
+      
+      weightLogs.unshift({ 
+        id: Date.now(), 
+        date: new Date().toLocaleDateString(), 
+        weight, waist, neck, chest, bicep,
+        photo: photoPreviewBase64 
+      });
       localStorage.setItem('dh_weightLogs', JSON.stringify(weightLogs));
+      
       document.getElementById('weight-log-input').value = '';
+      document.getElementById('log-waist').value = '';
+      document.getElementById('log-neck').value = '';
+      document.getElementById('log-chest').value = '';
+      document.getElementById('log-bicep').value = '';
       document.getElementById('photo-upload').value = '';
       document.getElementById('photo-preview-img').classList.add('hidden');
       photoPreviewBase64 = null;
@@ -583,20 +628,48 @@
 
     function renderPhotobook() {
       const grid = document.getElementById('photobook-grid');
-      const logsWithPhotos = weightLogs.filter(l => l.photo);
-      if (logsWithPhotos.length === 0) {
-        grid.innerHTML = '<div class="col-span-full text-center p-10 bg-slate-100 border-4 border-dashed border-slate-300 rounded-3xl"><i data-lucide="image" class="w-12 h-12 text-slate-400 mx-auto mb-4"></i><p class="text-lg font-black uppercase tracking-widest text-slate-500">No photos logged. Discipline starts today.</p></div>';
+      // Photobook renders all logs, but visual priority given to those with photos
+      if (weightLogs.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center p-10 bg-slate-100 border-4 border-dashed border-slate-300 rounded-3xl"><i data-lucide="image" class="w-12 h-12 text-slate-400 mx-auto mb-4"></i><p class="text-lg font-black uppercase tracking-widest text-slate-500">No logs yet. Discipline starts today.</p></div>';
         lucide.createIcons(); return;
       }
-      grid.innerHTML = logsWithPhotos.map(l => `
-        <div class="relative group rounded-2xl overflow-hidden shadow-xl border-4 border-slate-900 bg-slate-900 aspect-[3/4]">
-          <img src="${l.photo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100">
-          <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 pt-12 flex justify-between items-end">
-            <div><div class="text-white font-black text-2xl tracking-tighter">${l.weight} <span class="text-sm text-red-500 font-bold uppercase">kg</span></div><div class="text-slate-400 text-xs font-black uppercase tracking-widest mt-1">${l.date}</div></div>
-            <i data-lucide="activity" class="text-red-600 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></i>
-          </div>
-        </div>
-      `).join('');
+      grid.innerHTML = weightLogs.map(l => {
+        if(l.photo) {
+          return `
+            <div class="relative group rounded-2xl overflow-hidden shadow-xl border-4 border-slate-900 bg-slate-900 aspect-[3/4]">
+              <img src="${l.photo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100">
+              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 pt-16 flex flex-col justify-end">
+                <div class="flex justify-between items-end mb-2">
+                  <div><div class="text-white font-black text-2xl tracking-tighter">${l.weight} <span class="text-sm text-red-500 font-bold uppercase">kg</span></div><div class="text-slate-400 text-xs font-black uppercase tracking-widest mt-1">${l.date}</div></div>
+                  <i data-lucide="activity" class="text-red-600 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></i>
+                </div>
+                <div class="grid grid-cols-4 gap-1 border-t border-slate-700/50 pt-2 mt-1">
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">W<br><span class="text-white text-xs">${l.waist||'-'}</span></div>
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">N<br><span class="text-white text-xs">${l.neck||'-'}</span></div>
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">C<br><span class="text-white text-xs">${l.chest||'-'}</span></div>
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">B<br><span class="text-white text-xs">${l.bicep||'-'}</span></div>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="relative group rounded-2xl overflow-hidden shadow-sm border-2 border-slate-300 bg-slate-50 aspect-[3/4] flex flex-col justify-between p-4">
+               <div class="text-slate-500 text-xs font-black uppercase tracking-widest">${l.date}</div>
+               <div class="text-center">
+                 <div class="text-slate-900 font-black text-3xl tracking-tighter">${l.weight} <span class="text-sm text-red-600 font-bold uppercase">kg</span></div>
+                 <div class="text-[10px] text-slate-400 font-bold uppercase mt-1">No Image Logged</div>
+               </div>
+               <div class="grid grid-cols-4 gap-1 border-t border-slate-300 pt-2 mt-1">
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">W<br><span class="text-slate-900 text-xs">${l.waist||'-'}</span></div>
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">N<br><span class="text-slate-900 text-xs">${l.neck||'-'}</span></div>
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">C<br><span class="text-slate-900 text-xs">${l.chest||'-'}</span></div>
+                   <div class="text-[9px] text-slate-400 font-bold uppercase text-center">B<br><span class="text-slate-900 text-xs">${l.bicep||'-'}</span></div>
+                </div>
+            </div>
+          `;
+        }
+      }).join('');
       lucide.createIcons();
     }
 
@@ -639,6 +712,22 @@
     ];
     let resettingId = null;
 
+    function addHabit(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-habit-name');
+      if(!input.value) return;
+      habits.push({ id: Date.now(), name: input.value.toUpperCase(), daysClean: 0 });
+      localStorage.setItem('dh_habits', JSON.stringify(habits));
+      input.value = '';
+      renderHabits(); triggerCloudSync();
+    }
+
+    function removeHabit(id) {
+      habits = habits.filter(h => h.id !== id);
+      localStorage.setItem('dh_habits', JSON.stringify(habits));
+      renderHabits(); triggerCloudSync();
+    }
+
     function incrementHabit(id) { const h = habits.find(h => h.id === id); if(h) { h.daysClean++; localStorage.setItem('dh_habits', JSON.stringify(habits)); renderHabits(); triggerCloudSync(); } }
     function startResetHabit(id) { resettingId = id; renderHabits(); }
     function cancelResetHabit() { resettingId = null; renderHabits(); }
@@ -646,6 +735,10 @@
 
     function renderHabits() {
       const container = document.getElementById('habits-container');
+      if (habits.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center p-8 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold uppercase tracking-wider">No active trackers. Add a habit to override.</div>';
+        lucide.createIcons(); return;
+      }
       container.innerHTML = habits.map(h => {
         const progress = Math.min((h.daysClean / 90) * 100, 100);
         let buttons = resettingId === h.id ? `
@@ -656,9 +749,10 @@
             <button onclick="startResetHabit(${h.id})" class="bg-slate-200 text-slate-600 py-4 px-5 rounded-xl text-sm hover:bg-red-600 hover:text-white transition"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
           `;
         return `
-          <div class="bg-white border-4 border-slate-900 rounded-2xl p-6 md:p-8 flex flex-col items-center text-center shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] relative overflow-hidden">
+          <div class="bg-white border-4 border-slate-900 rounded-2xl p-6 md:p-8 flex flex-col items-center text-center shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] relative overflow-hidden group">
+            <button onclick="removeHabit(${h.id})" class="absolute top-3 right-3 text-slate-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-50 p-1 rounded-md"><i data-lucide="x" class="w-4 h-4"></i></button>
             <div class="absolute top-0 left-0 h-2 bg-red-600 transition-all duration-1000" style="width: ${progress}%"></div>
-            <h3 class="font-black uppercase tracking-tighter text-lg text-slate-900 mb-6 h-12 flex items-center justify-center leading-tight">${h.name}</h3>
+            <h3 class="font-black uppercase tracking-tighter text-lg text-slate-900 mb-6 h-12 flex items-center justify-center leading-tight mt-4">${h.name}</h3>
             <div class="text-7xl font-black text-slate-900 mb-2 tracking-tighter">${h.daysClean}</div>
             <span class="text-xs font-bold text-red-500 uppercase tracking-widest mb-8">Days Clean</span>
             <div class="flex gap-2 w-full mt-auto">${buttons}</div>
@@ -789,7 +883,7 @@
       updateDriveLinkBtn(); checkAuthStatus(); renderAll(); renderWisdom();
       
       if(document.getElementById('setup-apps-script').value) {
-          pullFromCloud(); // Pull immediately on load if URL exists
+          pullFromCloud(); 
       }
     }
     
@@ -807,11 +901,41 @@
 
     loadSettings();
 
-    // Drive Upload Logic (Kept intact from previous iteration)
+    // Drive Upload Logic
     function checkAuthStatus() { const statusEl = document.getElementById('auth-status'); if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { statusEl.innerText = 'AUTHORIZED ✓'; statusEl.classList.replace('text-slate-500', 'text-green-600'); statusEl.classList.replace('border-slate-200', 'border-green-600'); return true; } else { statusEl.innerText = 'UNAUTHORIZED'; return false; } }
     function authorizeGoogleDrive(silent = false, callback = null) { const clientId = document.getElementById('setup-client-id').value; if (!clientId) { if (!silent) alert('Please enter your Google OAuth Client ID first.'); return; } const tokenClient = google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: 'https://www.googleapis.com/auth/drive.file', callback: (tokenResponse) => { if (tokenResponse && tokenResponse.access_token) { driveToken = tokenResponse.access_token; tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000); localStorage.setItem('driveToken', driveToken); localStorage.setItem('driveTokenExpiry', tokenExpiry); localStorage.setItem('hasAuthorizedDrive', 'true'); checkAuthStatus(); if (!silent) alert('✅ API Authorized!'); if (callback) callback(driveToken); } }, error_callback: (err) => { if (callback) callback(null); } }); if (silent) { tokenClient.requestAccessToken({prompt: ''}); } else { tokenClient.requestAccessToken({prompt: 'consent'}); } }
     function getValidToken(callback) { if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { callback(driveToken); } else if (localStorage.getItem('hasAuthorizedDrive') === 'true') { authorizeGoogleDrive(true, callback); } else { callback(null); } }
-    async function handlePhotoUpload(e) { const file = e.target.files[0]; if (!file) return; const status = document.getElementById('upload-status'), preview = document.getElementById('photo-preview-img'); getValidToken(async (token) => { if (!token) { alert('⚠️ Google Drive unauthorized. Saving locally.'); const r = new FileReader(); r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; r.readAsDataURL(file); return; } status.classList.remove('hidden'); document.getElementById('photo-upload').disabled = true; const metadata = { name: `Discipline_Photo_${new Date().toISOString().split('T')[0]}_${file.name}`, mimeType: file.type }; const formData = new FormData(); formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' })); formData.append('file', file); try { const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData }); if (res.ok) { const data = await res.json(); const r = new FileReader(); r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; r.readAsDataURL(file); alert(`✅ Synced to Google Drive! File ID: ${data.id}`); } else throw new Error('Upload failed.'); } catch (err) { alert('Sync failed.'); } finally { status.classList.add('hidden'); document.getElementById('photo-upload').disabled = false; } }); }
+    
+    async function handlePhotoUpload(e) { 
+      const file = e.target.files[0]; 
+      if (!file) return; 
+      const status = document.getElementById('upload-status'), preview = document.getElementById('photo-preview-img'); 
+      getValidToken(async (token) => { 
+        if (!token) { 
+          alert('⚠️ Google Drive unauthorized. Saving locally.'); 
+          const r = new FileReader(); 
+          r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; 
+          r.readAsDataURL(file); 
+          return; 
+        } 
+        status.classList.remove('hidden'); 
+        document.getElementById('photo-upload').disabled = true; 
+        const metadata = { name: `Discipline_Photo_${new Date().toISOString().split('T')[0]}_${file.name}`, mimeType: file.type }; 
+        const formData = new FormData(); 
+        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' })); 
+        formData.append('file', file); 
+        try { 
+          const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData }); 
+          if (res.ok) { 
+            const data = await res.json(); 
+            const r = new FileReader(); 
+            r.onload = (evt) => { photoPreviewBase64 = evt.target.result; preview.src = photoPreviewBase64; preview.classList.remove('hidden'); }; 
+            r.readAsDataURL(file); 
+            alert(`✅ Synced to Google Drive! File ID: ${data.id}`); 
+          } else throw new Error('Upload failed.'); 
+        } catch (err) { alert('Sync failed.'); } finally { status.classList.add('hidden'); document.getElementById('photo-upload').disabled = false; } 
+      }); 
+    }
   </script>
 </body>
 </html>
