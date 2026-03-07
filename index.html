@@ -6,6 +6,8 @@
   <title>Discipline Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Identity Services for OAuth2 -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     /* Hide scrollbar for the tab container */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -115,8 +117,8 @@
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-1">Progress Picture</label>
                   <input type="file" accept="image/*" id="photo-upload" onchange="handlePhotoUpload(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
-                  <p id="upload-status" class="text-xs text-purple-600 mt-1 animate-pulse hidden">Syncing globally...</p>
-                  <p class="text-[10px] text-slate-400 mt-1">*Images sync seamlessly via Apps Script backend.</p>
+                  <p id="upload-status" class="text-xs text-purple-600 mt-1 animate-pulse hidden">Uploading to Drive...</p>
+                  <p class="text-[10px] text-slate-400 mt-1">*Images upload securely via Drive API.</p>
                 </div>
                 <img id="photo-preview-img" class="w-full h-32 object-cover rounded-lg border border-slate-200 hidden">
                 <button type="submit" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700 transition text-sm">Save Log</button>
@@ -275,14 +277,21 @@
       <!-- TAB 7: GLOBAL SETUP -->
       <div id="tab-setup" class="tab-content hidden max-w-2xl mx-auto space-y-6">
         <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-blue-600"><i data-lucide="globe" class="text-blue-500"></i> Global Setup 🌍</h2>
-        <p class="text-sm text-slate-500 border-b pb-4">Connect your environment to create a <strong>100% Lifetime Free</strong> serverless backend.</p>
+        <p class="text-sm text-slate-500 border-b pb-4">Connect your environment. By directly using the Google Drive API, your data is synced without exposing keys using client-side OAuth 2.0.</p>
+        
         <div class="bg-blue-50 border border-blue-200 p-6 rounded-xl shadow-sm space-y-4">
-          <h3 class="font-bold text-blue-900 flex items-center gap-2 mb-4"><i data-lucide="hard-drive" class="w-[18px] h-[18px]"></i> Database Configuration</h3>
+          <h3 class="font-bold text-blue-900 flex items-center gap-2 mb-4"><i data-lucide="hard-drive" class="w-[18px] h-[18px]"></i> Google Drive API Configuration</h3>
           <div>
-            <label class="block text-sm font-bold text-slate-700 mb-1">Google Apps Script Web App URL</label>
-            <input type="url" id="setup-apps-script" oninput="saveSettings()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs shadow-inner bg-white">
+            <label class="block text-sm font-bold text-slate-700 mb-1">Google OAuth Client ID</label>
+            <input type="text" id="setup-client-id" oninput="saveSettings()" placeholder="YOUR_CLIENT_ID.apps.googleusercontent.com" class="w-full p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs shadow-inner bg-white">
+            <p class="text-[10px] text-slate-500 mt-2">Create an OAuth Client ID (Web Application) in Google Cloud Console. Add your hosting URL to "Authorized JavaScript origins".</p>
+          </div>
+          <div class="flex items-center gap-4 mt-2">
+            <button onclick="authorizeGoogleDrive()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow">Authorize Drive API</button>
+            <span id="auth-status" class="text-sm font-bold text-slate-500">Not Authorized</span>
           </div>
         </div>
+
         <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
           <h3 class="font-bold text-slate-700 flex items-center gap-2 mb-3"><i data-lucide="hard-drive" class="text-slate-500 w-[18px] h-[18px]"></i> Google Drive Link</h3>
           <p class="text-xs text-slate-500 mb-3">Direct link to your raw photo/data backup folder.</p>
@@ -312,10 +321,6 @@
       activeBtn.classList.add('bg-blue-100', 'text-blue-700');
       activeBtn.classList.remove('text-slate-600');
     }
-
-    // --- State & Storage Utilities ---
-    // Note: For this HTML version, complex data lives in memory just like the original React request,
-    // while URLs live in localStorage to match the functionality precisely.
 
     // --- Tab 1: Timetable & Focus ---
     let tasks = [
@@ -430,16 +435,40 @@
       updateTimerUI();
     }
 
-    // --- Tab 2: Gym & Calories ---
+    // --- Tab 2: Gym & Calories & Drive API ---
     let gymStreak = 3;
     let weightLogs = [];
     let photoPreviewBase64 = null;
     let currentCyclePhase = 'maintenance';
     let currentTdee = null;
+    let driveToken = null; // OAuth Token
 
     function updateGymStreak(val) {
       gymStreak = val === 0 ? 0 : gymStreak + val;
       document.getElementById('gym-streak-val').innerText = gymStreak;
+    }
+
+    // Authorize Drive using Google Identity Services
+    function authorizeGoogleDrive() {
+      const clientId = document.getElementById('setup-client-id').value;
+      if (!clientId) {
+        alert('Please enter your Google OAuth Client ID first.');
+        return;
+      }
+      const tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            driveToken = tokenResponse.access_token;
+            alert('✅ Successfully authorized Google Drive!');
+            const statusEl = document.getElementById('auth-status');
+            statusEl.innerText = 'Authorized ✓';
+            statusEl.classList.replace('text-slate-500', 'text-green-600');
+          }
+        },
+      });
+      tokenClient.requestAccessToken();
     }
 
     async function handlePhotoUpload(e) {
@@ -447,10 +476,9 @@
       if (!file) return;
       const status = document.getElementById('upload-status');
       const preview = document.getElementById('photo-preview-img');
-      const appsScriptUrl = localStorage.getItem('appsScriptUrl');
 
-      if (!appsScriptUrl) {
-        alert('⚠️ Configure your Apps Script URL in Setup to sync. Saving locally.');
+      if (!driveToken) {
+        alert('⚠️ Please authorize Google Drive in the Global Setup tab first to sync. Saving locally for now.');
         photoPreviewBase64 = URL.createObjectURL(file);
         preview.src = photoPreviewBase64;
         preview.classList.remove('hidden');
@@ -460,24 +488,41 @@
       status.classList.remove('hidden');
       document.getElementById('photo-upload').disabled = true;
 
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const base64Data = reader.result.split(',')[1];
-          await fetch(appsScriptUrl, {
-            method: 'POST', mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'upload_photo', filename: file.name, mimeType: file.type, data: base64Data })
-          });
+      // Construct multipart form data for Google Drive API
+      const metadata = {
+        name: `Progress_Photo_${new Date().toISOString().split('T')[0]}_${file.name}`,
+        mimeType: file.type
+      };
+
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${driveToken}`
+          },
+          body: formData
+        });
+
+        if (res.ok) {
+          const data = await res.json();
           photoPreviewBase64 = URL.createObjectURL(file);
           preview.src = photoPreviewBase64;
           preview.classList.remove('hidden');
-          alert('✅ Synced globally via Google Apps Script!');
-        } catch (err) { alert('Sync failed check url.'); }
+          alert(`✅ Successfully synced globally to Google Drive!\nFile ID: ${data.id}`);
+        } else {
+          throw new Error('Upload request failed.');
+        }
+      } catch (err) { 
+        console.error(err);
+        alert('Sync failed. Please ensure your token is valid and authorized.'); 
+      } finally {
         status.classList.add('hidden');
         document.getElementById('photo-upload').disabled = false;
-      };
-      reader.readAsDataURL(file);
+      }
     }
 
     function logWeight(e) {
@@ -767,14 +812,14 @@
 
     // --- Tab 7: Global Setup ---
     function loadSettings() {
-      document.getElementById('setup-apps-script').value = localStorage.getItem('appsScriptUrl') || '';
+      document.getElementById('setup-client-id').value = localStorage.getItem('clientId') || '';
       document.getElementById('setup-drive').value = localStorage.getItem('driveLink') || '';
       updateDriveLinkBtn();
     }
 
     function saveSettings() {
       const drive = document.getElementById('setup-drive').value;
-      localStorage.setItem('appsScriptUrl', document.getElementById('setup-apps-script').value);
+      localStorage.setItem('clientId', document.getElementById('setup-client-id').value);
       localStorage.setItem('driveLink', drive);
       updateDriveLinkBtn();
     }
