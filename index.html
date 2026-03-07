@@ -6,8 +6,6 @@
   <title>Discipline Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Identity Services for OAuth2 (Drive Image Sync) -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     /* Hide scrollbar for the tab container */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -137,8 +135,8 @@
               <div class="flex flex-col md:flex-row gap-4 items-end">
                 <div class="w-full md:w-2/3">
                   <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Progress Picture</label>
-                  <input type="file" accept="image/*" id="photo-upload" onchange="handlePhotoUpload(event)" class="w-full text-sm font-bold text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-black file:uppercase file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer transition-colors">
-                  <p id="upload-status" class="text-xs font-bold text-red-600 mt-2 animate-pulse hidden uppercase tracking-wider">Securely Uploading...</p>
+                  <input type="file" accept="image/*" id="photo-upload" class="w-full text-sm font-bold text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-black file:uppercase file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer transition-colors">
+                  <p id="upload-status" class="text-xs font-bold text-red-600 mt-2 animate-pulse hidden uppercase tracking-wider">Uploading to Drive...</p>
                 </div>
                 <div class="w-full md:w-1/3">
                   <button type="submit" class="w-full bg-slate-900 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-red-600 transition-colors shadow-lg">Save Metric</button>
@@ -146,7 +144,6 @@
               </div>
               <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-2">Source: Dept. of Defense Body Composition (Waist & Neck metrics for body fat % estimation).</p>
             </form>
-            <img id="photo-preview-img" class="w-full md:w-64 h-64 object-cover rounded-xl border-4 border-slate-900 mt-6 hidden mx-auto md:mx-0">
           </div>
         </div>
 
@@ -363,28 +360,21 @@
       <!-- TAB 9: GLOBAL SETUP -->
       <div id="tab-setup" class="tab-content hidden max-w-3xl mx-auto space-y-8">
         <h2 class="text-2xl font-black uppercase tracking-tight mb-6 flex items-center gap-3 border-b-4 border-slate-900 pb-2"><i data-lucide="globe" class="text-slate-900 w-8 h-8"></i> Infrastructure Setup</h2>
-        <p class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b-2 border-slate-200 pb-6">Configure Serverless Cloud Sync (100% Free via Google Apps Script) and Drive OAuth.</p>
+        <p class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b-2 border-slate-200 pb-6">All data and photos sync entirely through a single Google Apps Script endpoint. <strong>Your trainer only needs the single web app link below.</strong></p>
         
         <!-- Apps Script Sync Configuration -->
         <div class="bg-blue-50 border-2 border-blue-200 p-8 rounded-3xl shadow-sm space-y-6">
-            <h3 class="font-black uppercase tracking-widest text-blue-900 flex items-center gap-3 border-b-2 border-blue-500 inline-flex pb-1"><i data-lucide="database" class="w-6 h-6"></i> Cloud Database Sync</h3>
+            <h3 class="font-black uppercase tracking-widest text-blue-900 flex items-center gap-3 border-b-2 border-blue-500 inline-flex pb-1"><i data-lucide="database" class="w-6 h-6"></i> Database & Photo Sync API</h3>
             <div>
               <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Google Apps Script Web App URL</label>
-              <input type="url" id="setup-apps-script" oninput="saveSettings()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-4 border-2 border-slate-300 rounded-xl font-mono text-sm font-bold focus:border-blue-600 outline-none bg-white">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-3">Paste your deployed GAS URL here. Your trainer can view the synced Google Sheet live.</p>
+              <input type="url" id="setup-apps-script" oninput="saveSettings()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-4 border-2 border-slate-300 rounded-xl font-mono text-sm font-bold focus:border-blue-600 outline-none bg-white shadow-inner">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-3 leading-relaxed">
+                Paste your deployed GAS URL here. It serves as both your data syncing API and your trainer's live dashboard. Send this same link to your trainer—they just have to click it to see your progress instantly.
+              </p>
             </div>
-        </div>
-
-        <div class="bg-slate-50 border-2 border-slate-200 p-8 rounded-3xl shadow-sm space-y-6">
-          <h3 class="font-black uppercase tracking-widest text-slate-900 flex items-center gap-3 border-b-2 border-red-500 inline-flex pb-1"><i data-lucide="hard-drive" class="w-6 h-6"></i> Drive API Key (Photos)</h3>
-          <div>
-            <label class="block text-sm font-black uppercase tracking-wider text-slate-700 mb-2">Google OAuth Client ID</label>
-            <input type="text" id="setup-client-id" oninput="saveSettings()" placeholder="YOUR_CLIENT_ID.apps.googleusercontent.com" class="w-full p-4 border-2 border-slate-300 rounded-xl font-mono text-sm font-bold focus:border-slate-900 outline-none">
-          </div>
-          <div class="flex flex-col sm:flex-row items-center gap-4 mt-6">
-            <button onclick="authorizeGoogleDrive(false)" class="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg">Authorize Drive</button>
-            <span id="auth-status" class="text-sm font-black uppercase tracking-wider text-slate-500 bg-white px-4 py-2 rounded-lg border-2 border-slate-200">Unauthorized</span>
-          </div>
+            <div class="flex items-center gap-4 mt-6">
+              <button onclick="pullFromCloud()" class="bg-blue-600 text-white px-8 py-4 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-blue-700 transition-colors shadow-lg">Force Sync</button>
+            </div>
         </div>
       </div>
       
@@ -464,9 +454,9 @@
             };
             
             try {
+                // Sent as text/plain so we bypass strict CORS preflight entirely.
                 await fetch(url, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
                     body: JSON.stringify({ action: 'sync', data: payload })
                 });
@@ -500,7 +490,6 @@
             const json = await res.json();
             
             if (json && json.data) {
-                // Safely assign arrays, stripping any possible `null` values injected by bad syncs
                 if(json.data.studyLogs !== undefined) { studyLogs = (json.data.studyLogs || []).filter(i=>i); localStorage.setItem('dh_studyLogs', JSON.stringify(studyLogs)); }
                 if(json.data.tasks !== undefined) { tasks = (json.data.tasks || []).filter(i=>i); if(!tasks.length) tasks = DEFAULT_TASKS; localStorage.setItem('dh_tasks', JSON.stringify(tasks)); }
                 if(json.data.todos !== undefined) { todos = (json.data.todos || []).filter(i=>i); if(!todos.length) todos = DEFAULT_TODOS; localStorage.setItem('dh_todos', JSON.stringify(todos)); }
@@ -632,8 +621,7 @@
     // --- Tab 2/3: Gym, Calories, Photobook ---
     let gymStreak = safeGetNum('dh_gymStreak', 3);
     let weightLogs = safeGetArray('dh_weightLogs', []);
-    let photoPreviewBase64 = null; let currentCyclePhase = 'maintenance'; let currentTdee = null;
-    let driveToken = localStorage.getItem('driveToken') || null; let tokenExpiry = localStorage.getItem('driveTokenExpiry') || null;
+    let currentCyclePhase = 'maintenance'; let currentTdee = null;
 
     function updateGymStreak(val) {
       gymStreak = val === 0 ? 0 : gymStreak + val;
@@ -643,6 +631,67 @@
       triggerCloudSync();
     }
 
+    async function handlePhotoUpload(e) { 
+      const file = e.target.files[0]; 
+      if (!file) return; 
+
+      const url = document.getElementById('setup-apps-script') ? document.getElementById('setup-apps-script').value : '';
+      const status = document.getElementById('upload-status');
+      const photoUpload = document.getElementById('photo-upload');
+
+      if (!url) {
+        alert('⚠️ Configure your Google Apps Script URL in Setup to sync photos.');
+        return;
+      }
+
+      if(status) {
+        status.classList.remove('hidden');
+        status.innerText = "UPLOADING TO DRIVE...";
+      }
+      if(photoUpload) photoUpload.disabled = true;
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result.split(',')[1];
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            // Content-Type text/plain avoids CORS preflight and allows reading JSON response
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'uploadPhoto',
+              filename: file.name,
+              mimeType: file.type,
+              data: base64Data
+            })
+          });
+          const result = await res.json();
+          if (result.status === 'success') {
+             // Inject hidden input to hold the Drive URL
+             let hiddenInput = document.getElementById('hidden-drive-url');
+             if(!hiddenInput) {
+                 hiddenInput = document.createElement('input');
+                 hiddenInput.type = 'hidden';
+                 hiddenInput.id = 'hidden-drive-url';
+                 document.body.appendChild(hiddenInput);
+             }
+             hiddenInput.value = result.fileUrl;
+             
+             const preview = document.getElementById('photo-preview-img');
+             if(preview) { preview.src = result.fileUrl; preview.classList.remove('hidden'); }
+             alert(`✅ Synced to Drive!`);
+          } else throw new Error(result.msg || 'Upload failed');
+        } catch (err) {
+          console.error(err);
+          alert('Upload failed. Make sure your Apps Script Web App is deployed as "Anyone".');
+        } finally {
+          if(status) status.classList.add('hidden');
+          if(photoUpload) photoUpload.disabled = false;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
     function logWeight(e) {
       e.preventDefault();
       const weightInput = document.getElementById('weight-log-input');
@@ -650,12 +699,14 @@
       const neckInput = document.getElementById('log-neck');
       const chestInput = document.getElementById('log-chest');
       const bicepInput = document.getElementById('log-bicep');
+      const hiddenUrl = document.getElementById('hidden-drive-url');
 
       const weight = weightInput ? weightInput.value : '';
       const waist = waistInput ? waistInput.value : '';
       const neck = neckInput ? neckInput.value : '';
       const chest = chestInput ? chestInput.value : '';
       const bicep = bicepInput ? bicepInput.value : '';
+      const photoUrl = hiddenUrl ? hiddenUrl.value : null;
 
       if(!weight) return;
       
@@ -663,7 +714,7 @@
         id: Date.now(), 
         date: new Date().toLocaleDateString(), 
         weight, waist, neck, chest, bicep,
-        photo: photoPreviewBase64 
+        photo: photoUrl 
       });
       localStorage.setItem('dh_weightLogs', JSON.stringify(weightLogs));
       
@@ -672,11 +723,13 @@
       if (neckInput) neckInput.value = '';
       if (chestInput) chestInput.value = '';
       if (bicepInput) bicepInput.value = '';
+      if (hiddenUrl) hiddenUrl.value = '';
+
       const photoUpload = document.getElementById('photo-upload');
       if (photoUpload) photoUpload.value = '';
       const photoPreview = document.getElementById('photo-preview-img');
       if (photoPreview) photoPreview.classList.add('hidden');
-      photoPreviewBase64 = null;
+      
       renderPhotobook(); triggerCloudSync();
     }
 
@@ -1024,14 +1077,9 @@
 
     function loadSettings() {
       const appsScriptInput = document.getElementById('setup-apps-script');
-      const clientIdInput = document.getElementById('setup-client-id');
-      const driveInput = document.getElementById('setup-drive');
-
       if (appsScriptInput) appsScriptInput.value = localStorage.getItem('dh_appsScriptUrl') || '';
-      if (clientIdInput) clientIdInput.value = localStorage.getItem('clientId') || '';
-      if (driveInput) driveInput.value = localStorage.getItem('driveLink') || '';
       
-      updateDriveLinkBtn(); checkAuthStatus(); renderAll(); renderWisdom();
+      renderAll(); renderWisdom();
       
       if(appsScriptInput && appsScriptInput.value) {
           pullFromCloud(); 
@@ -1040,63 +1088,11 @@
     
     function saveSettings() {
       const appsScriptInput = document.getElementById('setup-apps-script');
-      const clientIdInput = document.getElementById('setup-client-id');
-      const driveInput = document.getElementById('setup-drive');
-
       if(appsScriptInput) localStorage.setItem('dh_appsScriptUrl', appsScriptInput.value);
-      if(clientIdInput) localStorage.setItem('clientId', clientIdInput.value);
-      if(driveInput) localStorage.setItem('driveLink', driveInput.value);
-      updateDriveLinkBtn(); triggerCloudSync();
-    }
-
-    function updateDriveLinkBtn() {
-      const btn = document.getElementById('drive-link-btn');
-      const driveInput = document.getElementById('setup-drive');
-      const val = driveInput ? driveInput.value : '';
-      if(btn) {
-        if(val) { btn.href = val; btn.classList.remove('hidden'); } 
-        else { btn.classList.add('hidden'); }
-      }
+      triggerCloudSync();
     }
 
     loadSettings();
-
-    // Drive Upload Logic
-    function checkAuthStatus() { const statusEl = document.getElementById('auth-status'); if(!statusEl) return false; if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { statusEl.innerText = 'AUTHORIZED ✓'; statusEl.classList.replace('text-slate-500', 'text-green-600'); statusEl.classList.replace('border-slate-200', 'border-green-600'); return true; } else { statusEl.innerText = 'UNAUTHORIZED'; return false; } }
-    function authorizeGoogleDrive(silent = false, callback = null) { const clientIdInput = document.getElementById('setup-client-id'); const clientId = clientIdInput ? clientIdInput.value : ''; if (!clientId) { if (!silent) alert('Please enter your Google OAuth Client ID first.'); return; } const tokenClient = google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: 'https://www.googleapis.com/auth/drive.file', callback: (tokenResponse) => { if (tokenResponse && tokenResponse.access_token) { driveToken = tokenResponse.access_token; tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000); localStorage.setItem('driveToken', driveToken); localStorage.setItem('driveTokenExpiry', tokenExpiry); localStorage.setItem('hasAuthorizedDrive', 'true'); checkAuthStatus(); if (!silent) alert('✅ API Authorized!'); if (callback) callback(driveToken); } }, error_callback: (err) => { if (callback) callback(null); } }); if (silent) { tokenClient.requestAccessToken({prompt: ''}); } else { tokenClient.requestAccessToken({prompt: 'consent'}); } }
-    function getValidToken(callback) { if (driveToken && tokenExpiry && Date.now() < tokenExpiry) { callback(driveToken); } else if (localStorage.getItem('hasAuthorizedDrive') === 'true') { authorizeGoogleDrive(true, callback); } else { callback(null); } }
-    
-    async function handlePhotoUpload(e) { 
-      const file = e.target.files[0]; 
-      if (!file) return; 
-      const status = document.getElementById('upload-status'), preview = document.getElementById('photo-preview-img'); 
-      getValidToken(async (token) => { 
-        if (!token) { 
-          alert('⚠️ Google Drive unauthorized. Saving locally.'); 
-          const r = new FileReader(); 
-          r.onload = (evt) => { photoPreviewBase64 = evt.target.result; if(preview){preview.src = photoPreviewBase64; preview.classList.remove('hidden');} }; 
-          r.readAsDataURL(file); 
-          return; 
-        } 
-        if(status) status.classList.remove('hidden'); 
-        const photoUpload = document.getElementById('photo-upload');
-        if(photoUpload) photoUpload.disabled = true; 
-        const metadata = { name: `Discipline_Photo_${new Date().toISOString().split('T')[0]}_${file.name}`, mimeType: file.type }; 
-        const formData = new FormData(); 
-        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' })); 
-        formData.append('file', file); 
-        try { 
-          const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData }); 
-          if (res.ok) { 
-            const data = await res.json(); 
-            const r = new FileReader(); 
-            r.onload = (evt) => { photoPreviewBase64 = evt.target.result; if(preview){preview.src = photoPreviewBase64; preview.classList.remove('hidden');} }; 
-            r.readAsDataURL(file); 
-            alert(`✅ Synced to Google Drive! File ID: ${data.id}`); 
-          } else throw new Error('Upload failed.'); 
-        } catch (err) { alert('Sync failed.'); } finally { if(status) status.classList.add('hidden'); if(photoUpload) photoUpload.disabled = false; } 
-      }); 
-    }
   </script>
 </body>
 </html>
