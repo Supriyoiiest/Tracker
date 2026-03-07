@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discipline Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Hide scrollbar for the tab container */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-200">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white p-6 shadow-lg border-b-4 border-blue-500">
+    <div class="max-w-4xl mx-auto flex flex-col items-center justify-center text-center space-y-3">
+      <i data-lucide="shield-check" class="text-blue-400 w-8 h-8"></i>
+      <blockquote class="text-lg md:text-xl font-serif italic text-slate-200 max-w-2xl leading-relaxed">
+        "We must all suffer from one of two pains: the pain of discipline or the pain of regret. The difference is discipline weighs ounces while regret weighs tons."
+      </blockquote>
+      <cite class="text-sm text-slate-400 not-italic font-bold tracking-wider uppercase">— Jim Rohn</cite>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-4 mt-8">
+    <!-- Navigation Tabs -->
+    <div class="flex overflow-x-auto gap-2 mb-8 bg-white p-2 rounded-xl shadow-sm border border-slate-200 hide-scrollbar" id="tab-container">
+      <button onclick="switchTab('timetable')" id="tab-btn-timetable" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap bg-blue-100 text-blue-700"><i data-lucide="clock" class="w-[18px] h-[18px]"></i> Timetable</button>
+      <button onclick="switchTab('gym')" id="tab-btn-gym" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap text-slate-600 hover:bg-slate-100"><i data-lucide="dumbbell" class="w-[18px] h-[18px]"></i> Gym</button>
+      <button onclick="switchTab('habits')" id="tab-btn-habits" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap text-slate-600 hover:bg-slate-100"><i data-lucide="flame" class="w-[18px] h-[18px]"></i> Habits</button>
+      <button onclick="switchTab('detox')" id="tab-btn-detox" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap text-slate-600 hover:bg-slate-100"><i data-lucide="smartphone" class="w-[18px] h-[18px]"></i> Detox</button>
+      <button onclick="switchTab('budget')" id="tab-btn-budget" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap text-slate-600 hover:bg-slate-100"><i data-lucide="wallet" class="w-[18px] h-[18px]"></i> Finance</button>
+      <button onclick="switchTab('wisdom')" id="tab-btn-wisdom" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap text-slate-600 hover:bg-slate-100"><i data-lucide="book-open" class="w-[18px] h-[18px]"></i> Geeta Gyan</button>
+      <button onclick="switchTab('setup')" id="tab-btn-setup" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap text-slate-600 hover:bg-slate-100"><i data-lucide="settings" class="w-[18px] h-[18px]"></i> Global Setup</button>
+    </div>
+
+    <!-- Tab Contents Container -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      
+      <!-- TAB 1: TIMETABLE & FOCUS -->
+      <div id="tab-timetable" class="tab-content block">
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="space-y-8">
+            <!-- Timetable -->
+            <div>
+              <h2 class="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2"><i data-lucide="clock" class="text-blue-500"></i> Daily Timetable</h2>
+              <form onsubmit="addTask(event)" class="flex gap-2 mb-4">
+                <input type="text" id="task-time" placeholder="09:00 AM" class="w-1/3 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
+                <input type="text" id="task-text" placeholder="Task description" class="flex-1 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition"><i data-lucide="plus" class="w-5 h-5"></i></button>
+              </form>
+              <ul id="task-list" class="space-y-2"></ul>
+            </div>
+            <!-- Todos -->
+            <div>
+              <h2 class="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2"><i data-lucide="check-square" class="text-blue-500"></i> Actionable To-Do List</h2>
+              <p class="text-xs text-slate-500 mb-3"><strong>Science:</strong> Writing down specific plans increases goal attainment via "Implementation Intentions" (Gollwitzer, 1999, <em>Am Psychol</em>).</p>
+              <form onsubmit="addTodo(event)" class="flex gap-2 mb-4">
+                <input type="text" id="todo-text" placeholder="Add a specific action..." class="flex-1 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
+                <button type="submit" class="bg-slate-800 text-white p-2 rounded-lg hover:bg-slate-700 transition"><i data-lucide="plus" class="w-5 h-5"></i></button>
+              </form>
+              <ul id="todo-list" class="space-y-2"></ul>
+            </div>
+          </div>
+          <!-- Focus Timer -->
+          <div class="flex flex-col items-center justify-start bg-slate-50 rounded-xl p-8 border border-slate-100">
+            <h2 class="text-lg font-bold mb-2 text-slate-700">Focus Mode</h2>
+            <p class="text-sm text-slate-500 mb-6 text-center">Use the Pomodoro technique (25 min focus) to reduce distractions and build discipline.</p>
+            <div id="timer-display" class="text-6xl font-mono font-bold text-slate-800 mb-8 tracking-wider">25:00</div>
+            <div class="flex gap-4">
+              <button id="timer-toggle-btn" onclick="toggleTimer()" class="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-white transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700">
+                <i data-lucide="play" id="timer-icon" class="w-5 h-5"></i> <span id="timer-text">Start Focus</span>
+              </button>
+              <button onclick="resetTimer()" class="flex items-center gap-2 px-4 py-3 rounded-full font-bold text-slate-600 bg-slate-200 hover:bg-slate-300 transition-transform active:scale-95">
+                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: GYM & CALORIES -->
+      <div id="tab-gym" class="tab-content hidden space-y-8">
+        <!-- Gym Streak -->
+        <div class="flex items-center justify-between bg-blue-50 border border-blue-100 p-6 rounded-xl">
+          <div>
+            <h2 class="text-xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="dumbbell" class="text-blue-600"></i> Gym Attendance Streak</h2>
+            <p class="text-sm text-blue-700 mt-1">Consistency builds the body and the mind.</p>
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="text-4xl font-black text-blue-600 flex items-center gap-1"><i data-lucide="flame" class="text-orange-500 w-8 h-8"></i> <span id="gym-streak-val">3</span></div>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Days</span>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="updateGymStreak(1)" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700">+ Log Day</button>
+            <button onclick="updateGymStreak(0)" class="bg-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-300">Reset</button>
+          </div>
+        </div>
+
+        <!-- Physique Tracker -->
+        <div>
+          <h2 class="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2"><i data-lucide="camera" class="text-purple-500"></i> Physique & Weight Tracker</h2>
+          <div class="grid md:grid-cols-3 gap-6">
+            <div class="md:col-span-1 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <h3 class="font-bold text-slate-700 mb-3 text-sm">Log Today</h3>
+              <form onsubmit="logWeight(event)" class="space-y-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-1">Weight (kg)</label>
+                  <input type="number" step="0.1" id="weight-log-input" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g. 75.5" required>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-1">Progress Picture</label>
+                  <input type="file" accept="image/*" id="photo-upload" onchange="handlePhotoUpload(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+                  <p id="upload-status" class="text-xs text-purple-600 mt-1 animate-pulse hidden">Syncing globally...</p>
+                  <p class="text-[10px] text-slate-400 mt-1">*Images sync seamlessly via Apps Script backend.</p>
+                </div>
+                <img id="photo-preview-img" class="w-full h-32 object-cover rounded-lg border border-slate-200 hidden">
+                <button type="submit" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700 transition text-sm">Save Log</button>
+              </form>
+            </div>
+            <div id="weight-logs-container" class="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 overflow-x-auto flex gap-4 items-start"></div>
+          </div>
+        </div>
+
+        <!-- Calorie Calculator -->
+        <div>
+          <h2 class="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2"><i data-lucide="activity" class="text-green-500"></i> Evidence-Based Calorie Tracker</h2>
+          <div class="grid md:grid-cols-2 gap-8">
+            <form onsubmit="calculateCalories(event)" class="space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Age (years)</label><input type="number" id="cal-age" value="25" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Gender</label><select id="cal-gender" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"><option value="male">Male</option><option value="female">Female</option></select></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Weight (kg)</label><input type="number" id="cal-weight" value="75" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Height (cm)</label><input type="number" id="cal-height" value="175" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"></div>
+              </div>
+              <div><label class="block text-xs font-bold text-slate-500 mb-1">Activity Level</label><select id="cal-activity" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"><option value="1.2">Sedentary</option><option value="1.375">Light</option><option value="1.55" selected>Moderate</option><option value="1.725">Heavy</option><option value="1.9">Athlete</option></select></div>
+              <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition">Calculate TDEE</button>
+            </form>
+            <div id="calorie-results" class="bg-slate-50 rounded-xl p-6 border border-slate-200 flex flex-col justify-center items-center text-center">
+               <p class="text-slate-500 my-auto">Enter your metrics to calculate your scientifically backed daily energy expenditure.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Routine -->
+        <div>
+          <h2 class="text-xl font-bold mb-4 flex items-center gap-2 border-b pb-2"><i data-lucide="dumbbell" class="text-blue-500"></i> Evidence-Based Routine (Push/Pull/Legs)</h2>
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <p class="text-sm text-slate-600 mb-4">Research shows training each muscle group 2x/week maximizes hypertrophy compared to 1x/week. Focus on progressive overload.</p>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="bg-slate-50 p-4 rounded-lg border border-slate-100"><h3 class="font-bold text-slate-800 mb-2">Push</h3><ul class="text-sm text-slate-600 space-y-1 list-disc pl-4"><li>Bench Press: 3x5-8</li><li>OHP: 3x8-10</li><li>Incline DB Press: 3x8-12</li><li>Lateral Raises: 3x12-15</li><li>Tricep Pushdowns: 3x10-15</li></ul></div>
+              <div class="bg-slate-50 p-4 rounded-lg border border-slate-100"><h3 class="font-bold text-slate-800 mb-2">Pull</h3><ul class="text-sm text-slate-600 space-y-1 list-disc pl-4"><li>Barbell Rows: 3x5-8</li><li>Pull-ups: 3x8-12</li><li>Face Pulls: 3x12-15</li><li>Barbell Curls: 3x10-12</li><li>Hammer Curls: 3x10-12</li></ul></div>
+              <div class="bg-slate-50 p-4 rounded-lg border border-slate-100"><h3 class="font-bold text-slate-800 mb-2">Legs</h3><ul class="text-sm text-slate-600 space-y-1 list-disc pl-4"><li>Squats: 3x5-8</li><li>RDLs: 3x8-10</li><li>Leg Press: 3x10-12</li><li>Leg Curls: 3x10-15</li><li>Calf Raises: 4x15-20</li></ul></div>
+            </div>
+            <div class="mt-4 text-[10px] text-slate-400"><strong>Source:</strong> Schoenfeld, B. J., et al. (2016). Effects of Resistance Training Frequency on Measures of Muscle Hypertrophy. <em>Sports Medicine</em>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: HABIT TRACKER -->
+      <div id="tab-habits" class="tab-content hidden">
+        <h2 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="shield-check" class="text-indigo-500"></i> Addiction & Habit Recovery</h2>
+        <p class="text-sm text-slate-500 mb-6 border-b pb-4">Replacing negative dopamine loops with disciplined action. If you fail, acknowledge it, reset, and start again immediately.</p>
+        <div id="habits-container" class="grid gap-4 sm:grid-cols-2 md:grid-cols-3"></div>
+        <div class="mt-8 bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm text-slate-600">
+          <h4 class="font-bold mb-1">Psychology of Quitting:</h4>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Identify Triggers:</strong> Boredom, stress, and isolation.</li>
+            <li><strong>Implementation Intention:</strong> "If I feel tempted to watch porn, then I will immediately do 20 pushups."</li>
+            <li><strong>Forgive & Recommit:</strong> A relapse is a lapse in execution, not character. Start over without shame.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TAB 4: SCREEN TIME DETOX -->
+      <div id="tab-detox" class="tab-content hidden space-y-6">
+        <h2 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="smartphone" class="text-teal-500"></i> Digital Detox & Screen Time</h2>
+        <p class="text-sm text-slate-500 border-b pb-4">Web apps cannot forcibly lock your phone, so discipline must come from awareness and friction. Track your daily screen allowance here.</p>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-slate-700 mb-4">Daily Screen Time Budget</h3>
+            <div class="mb-6">
+              <div class="flex justify-between text-sm mb-1 font-bold">
+                <span class="text-slate-600" id="screen-used-label">Used: 0 mins</span>
+                <span class="text-slate-600">Limit: 120 mins</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+                <div id="screen-progress" class="h-4 transition-all duration-500 bg-green-500" style="width: 0%;"></div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="updateScreenTime(15)" class="bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-sm hover:bg-slate-200 font-bold transition">+15 Min</button>
+              <button onclick="updateScreenTime(30)" class="bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-sm hover:bg-slate-200 font-bold transition">+30 Min</button>
+              <button onclick="resetScreenTime()" class="ml-auto text-slate-400 hover:text-slate-600 p-2"><i data-lucide="rotate-ccw" class="w-[18px] h-[18px]"></i></button>
+            </div>
+          </div>
+          <div class="bg-teal-50 p-6 rounded-xl border border-teal-100 flex flex-col">
+            <h3 class="font-bold text-teal-900 mb-2">Evidence-Based Reduction</h3>
+            <ul class="list-disc pl-4 space-y-2 text-sm text-teal-800 mb-4">
+              <li><strong>Grayscale Mode:</strong> Removes the dopamine hit from colored badges.</li>
+              <li><strong>Physical Distance:</strong> Charge phone in another room.</li>
+              <li><strong>App Timers:</strong> Use native OS hard app limits.</li>
+            </ul>
+            <div class="text-[10px] text-teal-600 border-t border-teal-200 pt-2 mt-auto"><strong>Source:</strong> Hunt, M. G., et al. (2018). <em>Journal of Social and Clinical Psychology</em>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: BUDGET & FINANCE -->
+      <div id="tab-budget" class="tab-content hidden space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
+          <div>
+            <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="wallet" class="text-emerald-500"></i> Financial Discipline</h2>
+            <p class="text-sm text-slate-500 mt-1">Track outgoings to trigger the "pain of paying" (Zellermayer, 1996).</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+              <label class="text-xs font-bold text-slate-600 whitespace-nowrap">Monthly Budget: ₹</label>
+              <input type="number" id="monthly-budget-input" value="50000" onchange="updateBudget()" class="w-24 p-1 border rounded bg-white outline-none focus:ring-1 focus:ring-emerald-500 text-sm font-bold text-slate-800">
+            </div>
+            <div id="budget-reset-confirm" class="hidden items-center gap-1 bg-red-50 p-1 rounded-lg border border-red-200 h-[36px]">
+              <span class="text-xs font-bold text-red-600 px-2 whitespace-nowrap">Erase all?</span>
+              <button onclick="confirmResetBudget(true)" class="bg-red-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-red-700 h-full">Yes</button>
+              <button onclick="confirmResetBudget(false)" class="bg-slate-200 text-slate-700 px-3 py-1 rounded text-xs font-bold hover:bg-slate-300 h-full">No</button>
+            </div>
+            <button id="budget-reset-btn" onclick="toggleBudgetReset()" class="flex items-center gap-1 bg-slate-100 text-slate-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition border border-transparent hover:border-red-100 h-[36px]" title="Wipe all data to start fresh">
+              <i data-lucide="rotate-ccw" class="w-[14px] h-[14px]"></i> Reset Data
+            </button>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="md:col-span-1 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-6">
+            <div>
+              <h3 class="font-bold text-slate-700 mb-4">Log Transaction</h3>
+              <form onsubmit="addTransaction(event)" class="space-y-3">
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Amount</label><input type="number" step="0.01" id="tx-amount" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g. 500" required></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Description</label><input type="text" id="tx-desc" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g. SIP or Groceries" required></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Type</label><select id="tx-type" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"><option value="expense">Expense</option><option value="investment">Investment</option></select></div>
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg hover:bg-emerald-700 transition">Log Entry</button>
+              </form>
+            </div>
+            <div class="mt-auto pt-4 border-t border-slate-100">
+              <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Investment Trend</h3>
+              <div id="chart-container" class="flex items-end gap-2 h-24 mt-2"></div>
+            </div>
+          </div>
+          <div class="md:col-span-2 space-y-4">
+            <h3 class="font-bold text-slate-700 -mb-2" id="current-month-title">Current Month</h3>
+            <div id="budget-dashboard" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm max-h-[220px] overflow-y-auto">
+              <h3 class="font-bold text-slate-700 mb-3 border-b pb-2">Recent Logs</h3>
+              <ul id="tx-list" class="space-y-2"></ul>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-2"><strong>Guideline:</strong> The 50/30/20 rule suggests routing at least 20% of net income directly into savings/investments <em>(Warren & Tyagi, 2005)</em>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: GEETA GYAN -->
+      <div id="tab-wisdom" class="tab-content hidden max-w-2xl mx-auto text-center space-y-6">
+        <h2 class="text-2xl font-bold mb-2 flex items-center justify-center gap-2 text-amber-600"><i data-lucide="book-open" class="text-amber-500"></i> Geeta Gyan</h2>
+        <p class="text-sm text-slate-500">Ancient, timeless psychological frameworks for when discipline wavers.</p>
+        <div class="bg-amber-50 border border-amber-200 p-8 rounded-2xl shadow-sm relative overflow-hidden">
+          <div class="text-amber-100 absolute top-0 right-0 -mr-4 -mt-4 opacity-50"><i data-lucide="book-open" style="width:120px;height:120px;"></i></div>
+          <div class="relative z-10 space-y-4" id="wisdom-content"></div>
+        </div>
+        <button onclick="seekGuidance()" class="bg-amber-600 text-white px-6 py-3 rounded-full font-bold shadow-md hover:bg-amber-700 transition active:scale-95">Seek Guidance</button>
+      </div>
+
+      <!-- TAB 7: GLOBAL SETUP -->
+      <div id="tab-setup" class="tab-content hidden max-w-2xl mx-auto space-y-6">
+        <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-blue-600"><i data-lucide="globe" class="text-blue-500"></i> Global Setup 🌍</h2>
+        <p class="text-sm text-slate-500 border-b pb-4">Connect your environment to create a <strong>100% Lifetime Free</strong> serverless backend.</p>
+        <div class="bg-blue-50 border border-blue-200 p-6 rounded-xl shadow-sm space-y-4">
+          <h3 class="font-bold text-blue-900 flex items-center gap-2 mb-4"><i data-lucide="hard-drive" class="w-[18px] h-[18px]"></i> Database Configuration</h3>
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1">Google Apps Script Web App URL</label>
+            <input type="url" id="setup-apps-script" oninput="saveSettings()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs shadow-inner bg-white">
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
+          <h3 class="font-bold text-slate-700 flex items-center gap-2 mb-3"><i data-lucide="hard-drive" class="text-slate-500 w-[18px] h-[18px]"></i> Google Drive Link</h3>
+          <p class="text-xs text-slate-500 mb-3">Direct link to your raw photo/data backup folder.</p>
+          <input type="url" id="setup-drive" oninput="saveSettings()" placeholder="https://drive.google.com/drive/folders/..." class="w-full p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-slate-500 text-sm shadow-inner bg-slate-50">
+          <a id="drive-link-btn" href="#" target="_blank" class="hidden mt-4 inline-block bg-slate-800 text-white text-sm px-6 py-2.5 rounded-lg font-bold hover:bg-slate-700 transition-colors shadow-sm">Open Drive Folder</a>
+        </div>
+      </div>
+      
+    </div>
+  </main>
+
+  <!-- Application Logic -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // --- Tab Navigation ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-100', 'text-blue-700');
+        btn.classList.add('text-slate-600');
+      });
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      activeBtn.classList.add('bg-blue-100', 'text-blue-700');
+      activeBtn.classList.remove('text-slate-600');
+    }
+
+    // --- State & Storage Utilities ---
+    // Note: For this HTML version, complex data lives in memory just like the original React request,
+    // while URLs live in localStorage to match the functionality precisely.
+
+    // --- Tab 1: Timetable & Focus ---
+    let tasks = [
+      { id: 1, time: '06:00 AM', text: 'Wake up & Hydrate' },
+      { id: 2, time: '06:30 AM', text: 'Gym Session' },
+      { id: 3, time: '08:30 AM', text: 'Deep Work / Study' },
+    ];
+    let todos = [
+      { id: 1, text: 'Review weekly goals', completed: false },
+      { id: 2, text: 'Read 10 pages', completed: true },
+    ];
+
+    function renderTasks() {
+      const list = document.getElementById('task-list');
+      if (tasks.length === 0) list.innerHTML = '<p class="text-sm text-slate-500 italic">No tasks added. Plan your day!</p>';
+      else list.innerHTML = tasks.map(t => `
+        <li class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
+          <span class="font-semibold text-sm text-slate-700 w-24">${t.time}</span>
+          <span class="flex-1 text-slate-600 text-sm">${t.text}</span>
+          <button onclick="removeTask(${t.id})" class="text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </li>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function addTask(e) {
+      e.preventDefault();
+      const time = document.getElementById('task-time').value;
+      const text = document.getElementById('task-text').value;
+      tasks.push({ id: Date.now(), time, text });
+      document.getElementById('task-time').value = '';
+      document.getElementById('task-text').value = '';
+      renderTasks();
+    }
+
+    function removeTask(id) { tasks = tasks.filter(t => t.id !== id); renderTasks(); }
+
+    function renderTodos() {
+      const list = document.getElementById('todo-list');
+      list.innerHTML = todos.map(t => `
+        <li class="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+          <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTodo(${t.id})" class="w-5 h-5 accent-blue-600 cursor-pointer">
+          <span class="flex-1 text-sm ${t.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${t.text}</span>
+          <button onclick="removeTodo(${t.id})" class="text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </li>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function addTodo(e) {
+      e.preventDefault();
+      const text = document.getElementById('todo-text').value;
+      todos.push({ id: Date.now(), text, completed: false });
+      document.getElementById('todo-text').value = '';
+      renderTodos();
+    }
+
+    function toggleTodo(id) {
+      const todo = todos.find(t => t.id === id);
+      if (todo) todo.completed = !todo.completed;
+      renderTodos();
+    }
+
+    function removeTodo(id) { todos = todos.filter(t => t.id !== id); renderTodos(); }
+
+    // Timer
+    let timeLeft = 25 * 60;
+    let isRunning = false;
+    let timerInterval = null;
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateTimerUI() {
+      document.getElementById('timer-display').innerText = formatTime(timeLeft);
+      const btn = document.getElementById('timer-toggle-btn');
+      const text = document.getElementById('timer-text');
+      if (isRunning) {
+        btn.classList.replace('bg-blue-600', 'bg-amber-500');
+        btn.classList.replace('hover:bg-blue-700', 'hover:bg-amber-600');
+        text.innerText = 'Pause';
+        document.getElementById('timer-icon').setAttribute('data-lucide', 'pause');
+      } else {
+        btn.classList.replace('bg-amber-500', 'bg-blue-600');
+        btn.classList.replace('hover:bg-amber-600', 'hover:bg-blue-700');
+        text.innerText = 'Start Focus';
+        document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleTimer() {
+      isRunning = !isRunning;
+      if (isRunning) {
+        timerInterval = setInterval(() => {
+          if (timeLeft > 0) { timeLeft--; updateTimerUI(); } 
+          else { clearInterval(timerInterval); isRunning = false; updateTimerUI(); }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+      }
+      updateTimerUI();
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      timeLeft = 25 * 60;
+      updateTimerUI();
+    }
+
+    // --- Tab 2: Gym & Calories ---
+    let gymStreak = 3;
+    let weightLogs = [];
+    let photoPreviewBase64 = null;
+    let currentCyclePhase = 'maintenance';
+    let currentTdee = null;
+
+    function updateGymStreak(val) {
+      gymStreak = val === 0 ? 0 : gymStreak + val;
+      document.getElementById('gym-streak-val').innerText = gymStreak;
+    }
+
+    async function handlePhotoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const status = document.getElementById('upload-status');
+      const preview = document.getElementById('photo-preview-img');
+      const appsScriptUrl = localStorage.getItem('appsScriptUrl');
+
+      if (!appsScriptUrl) {
+        alert('⚠️ Configure your Apps Script URL in Setup to sync. Saving locally.');
+        photoPreviewBase64 = URL.createObjectURL(file);
+        preview.src = photoPreviewBase64;
+        preview.classList.remove('hidden');
+        return;
+      }
+
+      status.classList.remove('hidden');
+      document.getElementById('photo-upload').disabled = true;
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64Data = reader.result.split(',')[1];
+          await fetch(appsScriptUrl, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'upload_photo', filename: file.name, mimeType: file.type, data: base64Data })
+          });
+          photoPreviewBase64 = URL.createObjectURL(file);
+          preview.src = photoPreviewBase64;
+          preview.classList.remove('hidden');
+          alert('✅ Synced globally via Google Apps Script!');
+        } catch (err) { alert('Sync failed check url.'); }
+        status.classList.add('hidden');
+        document.getElementById('photo-upload').disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function logWeight(e) {
+      e.preventDefault();
+      const weight = document.getElementById('weight-log-input').value;
+      if(!weight) return;
+      weightLogs.unshift({ id: Date.now(), date: new Date().toLocaleDateString(), weight, photo: photoPreviewBase64 });
+      
+      document.getElementById('weight-log-input').value = '';
+      document.getElementById('photo-upload').value = '';
+      document.getElementById('photo-preview-img').classList.add('hidden');
+      photoPreviewBase64 = null;
+      renderWeightLogs();
+    }
+
+    function renderWeightLogs() {
+      const container = document.getElementById('weight-logs-container');
+      if (weightLogs.length === 0) {
+        container.innerHTML = '<p class="text-sm text-slate-500 italic m-auto">No logs yet. Start tracking your progress!</p>';
+        return;
+      }
+      container.innerHTML = weightLogs.map(l => `
+        <div class="min-w-[120px] bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center shrink-0">
+          <div class="text-xs text-slate-400 mb-1">${l.date}</div>
+          <div class="font-black text-xl text-slate-800 mb-2">${l.weight} <span class="text-xs font-normal">kg</span></div>
+          ${l.photo ? `<img src="${l.photo}" class="w-full h-24 object-cover rounded-md">` : `<div class="w-full h-24 bg-slate-100 rounded-md flex items-center justify-center text-slate-300 text-xs">No Photo</div>`}
+        </div>
+      `).join('');
+    }
+
+    function calculateCalories(e) {
+      e.preventDefault();
+      const age = Number(document.getElementById('cal-age').value);
+      const gender = document.getElementById('cal-gender').value;
+      const weight = Number(document.getElementById('cal-weight').value);
+      const height = Number(document.getElementById('cal-height').value);
+      const activity = Number(document.getElementById('cal-activity').value);
+
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+      bmr += (gender === 'male') ? 5 : -161;
+      currentTdee = Math.round(bmr * activity);
+      renderCalorieResults(weight);
+    }
+
+    function setCyclePhase(phase) {
+      currentCyclePhase = phase;
+      const weight = Number(document.getElementById('cal-weight').value) || 75;
+      if(currentTdee) renderCalorieResults(weight);
+    }
+
+    function renderCalorieResults(weight) {
+      const container = document.getElementById('calorie-results');
+      if (!currentTdee) return;
+      
+      let targetKcal = currentTdee;
+      let phaseText = "Energy balance to maintain current weight.";
+      if(currentCyclePhase === 'bulk') { targetKcal += 300; phaseText = "Moderate 300 kcal surplus to maximize muscle gain."; }
+      if(currentCyclePhase === 'cut') { targetKcal -= 500; phaseText = "A 500 kcal deficit yields ~0.5kg/week fat loss."; }
+
+      const pro = Math.round(weight * 2.2);
+      const fat = Math.round((targetKcal * 0.25) / 9);
+      const carb = Math.round((targetKcal - (pro * 4) - (fat * 9)) / 4);
+
+      container.innerHTML = `
+        <div class="flex bg-slate-200 p-1 rounded-lg w-full mb-4">
+          <button onclick="setCyclePhase('cut')" class="flex-1 text-sm font-bold py-1 rounded-md transition ${currentCyclePhase === 'cut' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}">Cut</button>
+          <button onclick="setCyclePhase('maintenance')" class="flex-1 text-sm font-bold py-1 rounded-md transition ${currentCyclePhase === 'maintenance' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}">Maintain</button>
+          <button onclick="setCyclePhase('bulk')" class="flex-1 text-sm font-bold py-1 rounded-md transition ${currentCyclePhase === 'bulk' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}">Bulk</button>
+        </div>
+        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Target Calories</h3>
+        <div class="text-5xl font-black text-slate-800 mb-2">${targetKcal} <span class="text-xl text-slate-500 font-normal">kcal</span></div>
+        <p class="text-xs text-slate-500 mb-4">${phaseText}</p>
+        <div class="w-full bg-white p-3 rounded-lg border border-slate-200 mb-4 text-sm text-left">
+          <h4 class="font-bold text-slate-700 border-b pb-1 mb-2">Target Macros:</h4>
+          <ul class="space-y-1 text-slate-600">
+            <li><strong>Protein:</strong> ${pro}g <span class="text-xs text-slate-400">(2.2g/kg)</span></li>
+            <li><strong>Fats:</strong> ${fat}g <span class="text-xs text-slate-400">(25% of kcal)</span></li>
+            <li><strong>Carbs:</strong> ${carb}g <span class="text-xs text-slate-400">(Remaining)</span></li>
+          </ul>
+        </div>
+      `;
+    }
+
+    // --- Tab 3: Habit Tracker ---
+    let habits = [
+      { id: 1, name: 'NNN', daysClean: 12 },
+      { id: 2, name: 'Fidelity / No Cheating', daysClean: 45 },
+      { id: 3, name: 'No Junk Food', daysClean: 5 }
+    ];
+    let resettingId = null;
+
+    function incrementHabit(id) {
+      const h = habits.find(h => h.id === id);
+      if(h) h.daysClean++;
+      renderHabits();
+    }
+
+    function startResetHabit(id) { resettingId = id; renderHabits(); }
+    function cancelResetHabit() { resettingId = null; renderHabits(); }
+    function confirmResetHabit(id) {
+      const h = habits.find(h => h.id === id);
+      if(h) h.daysClean = 0;
+      resettingId = null;
+      renderHabits();
+    }
+
+    function renderHabits() {
+      const container = document.getElementById('habits-container');
+      container.innerHTML = habits.map(h => {
+        const progress = Math.min((h.daysClean / 90) * 100, 100);
+        let buttons = '';
+        if(resettingId === h.id) {
+          buttons = `
+            <button onclick="confirmResetHabit(${h.id})" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition">Confirm</button>
+            <button onclick="cancelResetHabit()" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg text-sm font-bold hover:bg-slate-300 transition">Cancel</button>
+          `;
+        } else {
+          buttons = `
+            <button onclick="incrementHabit(${h.id})" class="flex-1 bg-indigo-50 text-indigo-700 py-2 rounded-lg text-sm font-bold hover:bg-indigo-100 transition">+1 Day</button>
+            <button onclick="startResetHabit(${h.id})" class="bg-slate-100 text-slate-500 py-2 px-3 rounded-lg text-sm hover:bg-red-50 hover:text-red-600 transition"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+          `;
+        }
+        return `
+          <div class="bg-white border border-slate-200 rounded-xl p-5 flex flex-col items-center text-center shadow-sm relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 h-1 bg-indigo-500 transition-all duration-1000" style="width: ${progress}%"></div>
+            <h3 class="font-bold text-slate-700 mb-4 h-10 flex items-center justify-center">${h.name}</h3>
+            <div class="text-5xl font-black text-indigo-600 mb-2">${h.daysClean}</div>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Days Clean</span>
+            <div class="flex gap-2 w-full mt-auto">${buttons}</div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // --- Tab 4: Screen Time ---
+    let screenUsed = 0;
+    const screenBudget = 120;
+    
+    function updateScreenTime(mins) {
+      screenUsed += mins;
+      renderScreenTime();
+    }
+    
+    function resetScreenTime() { screenUsed = 0; renderScreenTime(); }
+
+    function renderScreenTime() {
+      document.getElementById('screen-used-label').innerText = `Used: ${screenUsed} mins`;
+      const pct = Math.min((screenUsed / screenBudget) * 100, 100);
+      const bar = document.getElementById('screen-progress');
+      bar.style.width = `${pct}%`;
+      bar.className = 'h-4 transition-all duration-500 ' + (pct >= 100 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-green-500');
+    }
+
+    // --- Tab 5: Budget & Finance ---
+    let transactions = [
+      { id: 1, amount: 15000, desc: 'Index Fund SIP', type: 'investment', date: new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString() },
+      { id: 2, amount: 20000, desc: 'Rent & Bills', type: 'expense', date: new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString() },
+      { id: 3, amount: 18000, desc: 'Stocks', type: 'investment', date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString() },
+    ];
+    let monthlyBudgetVal = 50000;
+
+    function updateBudget() {
+      monthlyBudgetVal = Number(document.getElementById('monthly-budget-input').value) || 0;
+      renderBudget();
+    }
+
+    function toggleBudgetReset() {
+      document.getElementById('budget-reset-btn').classList.add('hidden');
+      document.getElementById('budget-reset-confirm').classList.remove('hidden');
+      document.getElementById('budget-reset-confirm').classList.add('flex');
+    }
+
+    function confirmResetBudget(confirm) {
+      if(confirm) transactions = [];
+      document.getElementById('budget-reset-btn').classList.remove('hidden');
+      document.getElementById('budget-reset-confirm').classList.add('hidden');
+      document.getElementById('budget-reset-confirm').classList.remove('flex');
+      renderBudget();
+    }
+
+    function addTransaction(e) {
+      e.preventDefault();
+      const amount = document.getElementById('tx-amount').value;
+      const desc = document.getElementById('tx-desc').value;
+      const type = document.getElementById('tx-type').value;
+      
+      transactions.unshift({ id: Date.now(), amount: parseFloat(amount), desc, type, date: new Date().toISOString() });
+      document.getElementById('tx-amount').value = '';
+      document.getElementById('tx-desc').value = '';
+      renderBudget();
+    }
+
+    function removeTx(id) { transactions = transactions.filter(t => t.id !== id); renderBudget(); }
+
+    function renderBudget() {
+      const d = new Date();
+      const currentMonthStr = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+      document.getElementById('current-month-title').innerText = `Current Month (${currentMonthStr})`;
+
+      const monthlyData = transactions.reduce((acc, t) => {
+        const mY = new Date(t.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+        if (!acc[mY]) acc[mY] = { label: mY, invested: 0, spent: 0, ts: new Date(t.date).getTime() };
+        if (t.type === 'investment') acc[mY].invested += t.amount; else acc[mY].spent += t.amount;
+        return acc;
+      }, {});
+
+      const sortedMonths = Object.values(monthlyData).sort((a, b) => a.ts - b.ts);
+      const curData = monthlyData[currentMonthStr] || { invested: 0, spent: 0 };
+      const netUsed = curData.invested + curData.spent;
+      const remaining = monthlyBudgetVal - netUsed;
+      const pInv = monthlyBudgetVal > 0 ? ((curData.invested / monthlyBudgetVal) * 100).toFixed(1) : 0;
+      const pSpn = monthlyBudgetVal > 0 ? ((curData.spent / monthlyBudgetVal) * 100).toFixed(1) : 0;
+
+      // Dashboard
+      document.getElementById('budget-dashboard').innerHTML = `
+        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1">
+          <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Invested</span>
+          <span class="text-xl font-black text-emerald-700">₹${curData.invested.toFixed(0)}</span>
+          <span class="text-xs text-emerald-600 font-bold mt-1 bg-emerald-100 px-2 py-0.5 rounded-full">${pInv}%</span>
+        </div>
+        <div class="bg-red-50 p-3 rounded-xl border border-red-100 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1">
+          <span class="text-[10px] font-bold text-red-600 uppercase tracking-widest">Spent</span>
+          <span class="text-xl font-black text-red-700">₹${curData.spent.toFixed(0)}</span>
+          <span class="text-xs text-red-600 font-bold mt-1 bg-red-100 px-2 py-0.5 rounded-full">${pSpn}%</span>
+        </div>
+        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-2">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Remaining</span>
+          <span class="text-2xl font-black ${remaining < 0 ? 'text-red-400' : 'text-white'}">₹${remaining.toFixed(0)}</span>
+          <div class="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+             <div class="bg-emerald-500 h-full" style="width: ${Math.min((netUsed / monthlyBudgetVal) * 100, 100)}%"></div>
+          </div>
+        </div>
+      `;
+
+      // List
+      const list = document.getElementById('tx-list');
+      if (transactions.length === 0) list.innerHTML = '<p class="text-sm text-slate-500 italic">No transactions.</p>';
+      else list.innerHTML = transactions.map(t => `
+        <li class="flex justify-between items-center p-2 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 transition">
+          <div class="flex flex-col"><span class="text-sm font-bold text-slate-700">${t.desc}</span><span class="text-[10px] text-slate-400">${new Date(t.date).toLocaleDateString()}</span></div>
+          <div class="flex items-center gap-3">
+            <span class="font-mono font-bold ${t.type === 'investment' ? 'text-emerald-600' : 'text-red-500'}">${t.type === 'investment' ? '+' : '-'}₹${t.amount.toFixed(2)}</span>
+            <button onclick="removeTx(${t.id})" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </li>
+      `).join('');
+
+      // Chart
+      const chart = document.getElementById('chart-container');
+      const maxInv = Math.max(...sortedMonths.map(m => m.invested), 1);
+      if (sortedMonths.length === 0) chart.innerHTML = '<p class="text-xs text-slate-400 italic">No data yet.</p>';
+      else chart.innerHTML = sortedMonths.map(m => `
+        <div class="flex flex-col items-center flex-1 group relative">
+          <div class="absolute -top-8 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">₹${m.invested.toLocaleString()}</div>
+          <div class="w-full bg-emerald-400 rounded-t-sm hover:bg-emerald-500 transition-colors" style="height: ${Math.max((m.invested / maxInv) * 100, 5)}%"></div>
+          <div class="text-[9px] text-slate-500 mt-1 truncate w-full text-center">${m.label.split(' ')[0]}</div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    // --- Tab 6: Geeta Gyan ---
+    const verses = [
+      { ch: 2, v: 47, s: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।", t: "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions.", a: "Focus purely on the process and detach yourself from the immediate outcome. Anxiety comes from outcome-dependency." },
+      { ch: 6, v: 6, s: "बन्धुरात्मात्मनस्तस्य येनात्मैवात्मना जितः।", t: "For him who has conquered the mind, the mind is the best of friends; but for one who has failed to do so, his mind will remain the greatest enemy.", a: "Discipline is not punishment; it is the taming of your greatest tool." },
+      { ch: 3, v: 8, s: "नियतं कुरु कर्म त्वं कर्म ज्यायो ह्यकर्मणः।", t: "Perform your obligatory duty, because action is indeed better than inaction.", a: "Action cures fear. Take the smallest possible positive action immediately rather than waiting for motivation." }
+    ];
+    let currentVerse = verses[0];
+
+    function seekGuidance() {
+      currentVerse = verses[Math.floor(Math.random() * verses.length)];
+      renderWisdom();
+    }
+
+    function renderWisdom() {
+      document.getElementById('wisdom-content').innerHTML = `
+        <h3 class="text-xs font-black uppercase tracking-widest text-amber-500">Chapter ${currentVerse.ch}, Verse ${currentVerse.v}</h3>
+        <p class="text-xl font-bold text-slate-800 leading-relaxed font-serif">"${currentVerse.t}"</p>
+        <div class="w-16 h-[2px] bg-amber-300 mx-auto my-4"></div>
+        <p class="text-sm text-slate-600 text-left bg-white p-4 rounded-lg border border-amber-100 shadow-sm">
+          <strong class="text-amber-700 block mb-1">Practical Application:</strong> ${currentVerse.a}
+        </p>
+      `;
+    }
+
+    // --- Tab 7: Global Setup ---
+    function loadSettings() {
+      document.getElementById('setup-apps-script').value = localStorage.getItem('appsScriptUrl') || '';
+      document.getElementById('setup-drive').value = localStorage.getItem('driveLink') || '';
+      updateDriveLinkBtn();
+    }
+
+    function saveSettings() {
+      const drive = document.getElementById('setup-drive').value;
+      localStorage.setItem('appsScriptUrl', document.getElementById('setup-apps-script').value);
+      localStorage.setItem('driveLink', drive);
+      updateDriveLinkBtn();
+    }
+
+    function updateDriveLinkBtn() {
+      const btn = document.getElementById('drive-link-btn');
+      const val = document.getElementById('setup-drive').value;
+      if(val) { btn.href = val; btn.classList.remove('hidden'); } 
+      else { btn.classList.add('hidden'); }
+    }
+
+    // --- Initialization ---
+    renderTasks();
+    renderTodos();
+    renderWeightLogs();
+    renderHabits();
+    renderScreenTime();
+    renderBudget();
+    renderWisdom();
+    loadSettings();
+
+  </script>
+</body>
+</html>
